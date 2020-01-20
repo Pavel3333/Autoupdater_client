@@ -1,0 +1,174 @@
+{
+    "EU": {
+        "info": [
+            "Pavel3333 Mods Autoupdater", 
+            "Author: Pavel3333 from RAINN VOD team", 
+            "Authors YouTube channel \"RAINN VOD\"", 
+            "Authors VK Group \"RAINN VOD\""
+        ], 
+        "msg": {
+            "close": "Close", 
+            "expires": "Autoupdater subscription expires after", 
+            "dep": "Dependency \"%s\":",
+            "mod": "Mod \"%s\":", 
+            "mod_upd": "Successfully updated to version %s #%s", 
+            "mods": "mods", 
+            "no_upd": "Not found any updates. You are using latest version %s #%s", 
+            "partially": "Not all mods were installed successfully", 
+            "renew": "Renew subscription", 
+            "restart": "Restart", 
+            "subscribe": "Subscribe", 
+            "unexpected": "Unexpected error %s (%s)", 
+            "updated": "Successfully updated %s mods", 
+            "updated_desc": "The changes will take effect after the client restarts", 
+            "warn": "Warning!"
+        }, 
+        "msg_err": {
+            "1": "An error occured while loading autoupdater translations.\nPlease redownload the autoupdater", 
+            "10": "An error occured while reading dependencies list", 
+            "11": "An error occured while getting files. Error code %s", 
+            "12": "Cannot to update some files.\nThey will be updated after game restart", 
+            "14": "Getted incorrect mod data", 
+            "2": "An error occured while checking player ID", 
+            "3": "An error occured while loading autoupdater files.\nPlease redownload the autoupdater", 
+            "4": "License key is invalid", 
+            "5": "An error occured: getted empty response", 
+            "7": "An error occured while getting mod list. Error code %s", 
+            "8": "An error occured while reading mod list", 
+            "9": "An error occured while getting dependencies list. Error code %s"
+        }, 
+        "msg_warn": {
+            "11": "ID was not found", 
+            "12": "You are not subscribed to Autoupdater.<br>You can subscribe it on \"https://pavel3333.ru/trajectorymod/lk\"", 
+            "13": "Autoupdater subscription has expired.<br >You can renew the subscription on \"https://pavel3333.ru/trajectorymod/lk\"", 
+            "19": "Mod was not found", 
+            "7": "Cannot to check player ID", 
+            "8": "Invalid license key"
+        }, 
+        "times_en": [
+            "month", 
+            "day", 
+            "hour", 
+            "minute"
+        ], 
+        "times_ru": [
+            [
+                "months", 
+                "days", 
+                "hours", 
+                "minutes"
+            ], 
+            [
+                "month", 
+                "day", 
+                "hour", 
+                "minute"
+            ], 
+            [
+                "month", 
+                "day", 
+                "hour", 
+                "minute"
+            ]
+        ], 
+        "titles": {
+            "main": "Autoupdater", 
+            "procDone": {
+                "0": "Getting mods list done", 
+                "1": "Getting dependicies list done", 
+                "2": "Getting files done"
+            }, 
+            "procStart": {
+                "0": "Getting mods list...", 
+                "1": "Getting dependicies list...", 
+                "2": "Getting files..."
+            }
+        }
+    },
+    "RU": {
+        "info": [
+            "Автозагрузчик модов от Pavel3333", 
+            "Автор: Pavel3333 из команды RAINN VOD", 
+            "Авторский YouTube канал \"RAINN VOD\"", 
+            "Авторская группа ВК \"RAINN VOD\""
+        ], 
+        "msg": {
+            "close": "Закрыть", 
+            "expires": "Подписка на автозагрузчик модов истекает через", 
+            "dep": "Зависимость \"%s\":",
+            "mod": "Мод \"%s\":", 
+            "mod_upd": "Успешно обновлено до версии %s #%s", 
+            "mods": "mods", 
+            "no_upd": "Нет доступных обновлений. Вы используете последнюю версию %s #%s", 
+            "partially": "Не все моды были установлены успешно", 
+            "renew": "Продлить подписку", 
+            "restart": "Перезагрузить", 
+            "subscribe": "Подписаться", 
+            "unexpected": "Неопознанная ошибка %s (%s)", 
+            "updated": "Успешно обновлены %s модов", 
+            "updated_desc": "Изменения вступят в силу после перезагрузки игрового клиента", 
+            "warn": "Внимание!"
+        }, 
+        "msg_err": {
+            "1": "Произошла ошибка во время загрузки переводов загрузчика.\nПожалуйста, перекачайте автозагрузчик", 
+            "10": "Произошла ошибка при чтении списка зависимостей", 
+            "11": "Произошла ошибка при получении файлов. Код ошибки %s", 
+            "12": "Невозможно обновить некоторые файлы.\nОни будут обновлены после перезапуска игры", 
+            "14": "Получены некорректные данные мода", 
+            "2": "Произошла ошибка во время проверки игрового ID", 
+            "3": "Произошла ошибка во время загрузки файлов автозагрузчика.\nПожалуйста, перекачайте автозагрузчик", 
+            "4": "Неверный лицензионный ключ", 
+            "5": "Произошла ошибка: получен пустой ответ", 
+            "7": "Произошла ошибка во время получения списка модов. Код ошибки %s", 
+            "8": "Произошла ошибка во время чтения списка модов", 
+            "9": "Произошла ошибка во время получения списка зависимостей. Код ошибки %s"
+        }, 
+        "msg_warn": {
+            "11": "ID не найден", 
+            "12": "Вы не подписаны на автозагрузчик.<br>Вы можете подписаться на него на \"https://pavel3333.ru/trajectorymod/lk\"", 
+            "13": "Подписка на автозагрузчик истекла.<br >Вы можете продлить подписку на\"https://pavel3333.ru/trajectorymod/lk\"", 
+            "19": "Мод не был найден", 
+            "7": "Невозможно проверить ID игрока", 
+            "8": "Неверный лицензионный ключ"
+        }, 
+        "times_en": [
+            "month", 
+            "day", 
+            "hour", 
+            "minute"
+        ], 
+        "times_ru": [
+            [
+                "месяцев", 
+                "дней", 
+                "часов", 
+                "минут"
+            ], 
+            [
+                "месяц", 
+                "день", 
+                "час", 
+                "минута"
+            ], 
+            [
+                "месяца", 
+                "дня", 
+                "часа", 
+                "минуты"
+            ]
+        ], 
+        "titles": {
+            "main": "Autoupdater", 
+            "procDone": {
+                "0": "Получение списка модов завершено", 
+                "1": "Получение списка зависимостей завершено", 
+                "2": "Получение файлов завершено"
+            }, 
+            "procStart": {
+                "0": "Получение списка модов...", 
+                "1": "Получение списка зависимостей...", 
+                "2": "Получение файлов..."
+            }
+        }
+    }
+}
