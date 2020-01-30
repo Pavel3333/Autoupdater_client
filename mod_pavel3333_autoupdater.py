@@ -26,27 +26,6 @@ class Autoupdater:
         self.lic = ''
         
         g_playerEvents.onAccountShowGUI += self.getID
-        
-        #debug
-        
-        self.time = time()
-        print '__init__ - start time'
-        
-        g_playerEvents.onAccountBecomePlayer     += lambda *args: self.dbg('onAccountBecomePlayer', *args)
-        g_playerEvents.onAccountBecomeNonPlayer  += lambda *args: self.dbg('onAccountBecomeNonPlayer', *args)
-        g_playerEvents.onAccountShowGUI          += lambda *args: self.dbg('onAccountShowGUI', *args)
-        
-        self.hangarSpace.onSpaceCreate   += lambda *args: self.dbg('onSpaceCreate', *args)
-        self.hangarSpace.onSpaceChanged  += lambda *args: self.dbg('onSpaceChanged', *args)
-        self.hangarSpace.onSpaceDestroy  += lambda *args: self.dbg('onSpaceDestroy', *args)
-        
-        self.hangarSpace.onHeroTankReady += lambda *args: self.dbg('onHeroTankReady', *args)
-        
-        self.hangarSpace.onVehicleChangeStarted += lambda *args: self.dbg('onVehicleChangeStarted', *args)
-        self.hangarSpace.onVehicleChanged       += lambda *args: self.dbg('onVehicleChanged', *args)
-    
-    def dbg(self, funcname, *args):
-        print '%s - %s'%(funcname, time() - self.time)
     
     def getID(self, *args):
         self.ID = int(getattr(BigWorld.player(), 'databaseID', 0))
@@ -74,17 +53,17 @@ class Autoupdater:
         
         if g_AutoupdaterShared.getErr() != ErrorCodes.SUCCESS: return
         
-        #try:
-        from gui.mods.Autoupdater.GUI.Window import g_WindowCommon
+        try:
+            from gui.mods.Autoupdater.GUI.Window import g_WindowCommon
+            
+            window = g_WindowCommon.createWindow()
+            if window is not None:
+                window.onWindowPopulate += self.getModsList
+                return
+        except Exception:
+            pass
         
-        window = g_WindowCommon.createWindow()
-        if window is not None:
-            window.onWindowPopulate += self.getModsList
-            return
-        #except Exception:
-        #    pass
-        
-        #self.getModsList()
+        self.getModsList()
     
     def getModsList(self):
         if g_AutoupdaterShared.getErr() != ErrorCodes.SUCCESS: return
