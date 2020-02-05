@@ -136,6 +136,8 @@ class Autoupdater:
         
         paths_count = len(paths)
         
+        undeletedPaths = set()
+        
         g_AUEvents.onDeletingStart(paths_count)
         
         i = 0
@@ -158,7 +160,11 @@ class Autoupdater:
         
         g_AUEvents.onDeletingDone(paths_count, i, deleteAfterFini)
         
-        if deleteAfterFini: self.hookFini()
+        if deleteAfterFini:
+            with open(Paths.DELETED_PATH, 'wb') as fil:
+                for path in g_AUShared.undeletedPaths:
+                    fil.write(path + '\n')
+            self.hookFini()
         
         self.getFiles(g_AUShared.dependencies)
         self.getFiles(g_AUShared.mods)
@@ -176,7 +182,7 @@ class Autoupdater:
         for modID in mods:
             mod = mods[modID]
             
-            req_header = RequestHeader(self.ID, self.lic, ResponseType.index('GET_FILES')S)
+            req_header = RequestHeader(self.ID, self.lic, ResponseType.index('GET_FILES'))
             req = Request(req_header)
             req.parse('H', int(modID))
             req.parse('I', len(mod.needToUpdate))

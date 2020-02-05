@@ -91,7 +91,7 @@ class Constants:
 
 class Paths:
     LIC_PATH        = Constants.MOD_DIR + Constants.MOD_NAME.upper() + '_%s.lic'
-    EXE_HELPER_PATH = './com.pavel3333.%s.exe'%(Constants.MOD_NAME)
+    EXE_HELPER_PATH = './com.pavel3333.%s.Helper.exe'%(Constants.MOD_NAME)
     DELETED_PATH    = './%s_delete.txt'%(Constants.MOD_NAME)
     LOG_PATH        = './%s_log.txt'%(Constants.MOD_NAME)
 

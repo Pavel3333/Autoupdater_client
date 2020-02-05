@@ -1,8 +1,6 @@
 from constants import AUTH_REALM
 
-from gui.mods.Autoupdater.Common     import *
-from gui.mods.Autoupdater.GUI.Common import *
-from gui.mods.Autoupdater.Shared     import *
+from gui.mods.Autoupdater import *
 
 import json
 

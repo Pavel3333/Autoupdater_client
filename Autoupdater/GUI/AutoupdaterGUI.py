@@ -8,7 +8,7 @@ from notification.actions_handlers import NotificationsActionsHandlers
 
 import json
 
-from gui.mods.Autoupdater.Shared import g_AUEvents, g_AUShared
+from gui.mods.Autoupdater import *
 
 class AutoupdaterGUI:
     def __init__(self):
@@ -90,7 +90,7 @@ class AutoupdaterGUI:
                     message += ' ' + g_AUGUIShared.getMsg('updated')%(updated_count) + ';'
                 if deleted_count:
                     message += ' ' + g_AUGUIShared.getMsg('updated')%(deleted_count) + ';'
-                messages += self.htmlMsg(message), color='228b22', size=20, nl=2)
+                messages += self.htmlMsg(message, color='228b22', size=20, nl=2)
             else:
                 messages += self.htmlMsg(g_AUGUIShared.getMsg('not_updated'), color='228b22', size=20)
         

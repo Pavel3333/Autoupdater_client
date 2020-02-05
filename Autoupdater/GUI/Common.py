@@ -1,4 +1,4 @@
-from gui.mods.Autoupdater.Common import *
+from gui.mods.Autoupdater import *
 
 __all__ = ('SimpleErr', 'FormatErr', 'AllErr', 'GUIPaths')
 

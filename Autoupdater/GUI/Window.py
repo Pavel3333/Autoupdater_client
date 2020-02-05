@@ -1,5 +1,4 @@
-from gui.mods.Autoupdater.Common import *
-from gui.mods.Autoupdater.Shared import *
+from gui.mods.Autoupdater import *
 
 from Common import *
 from Shared import *
