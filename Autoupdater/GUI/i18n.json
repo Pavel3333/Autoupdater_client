@@ -76,12 +76,14 @@
             "procDone": {
                 "0": "Getting mods list done", 
                 "1": "Getting dependicies list done", 
-                "2": "Getting files done"
+                "2": "Deleting old files done"
+                "3": "Getting files done"
             }, 
             "procStart": {
                 "0": "Getting mods list...", 
                 "1": "Getting dependicies list...", 
-                "2": "Getting files..."
+                "2": "Deleting old files..."
+                "3": "Getting files..."
             }
         }
     },

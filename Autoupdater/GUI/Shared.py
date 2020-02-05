@@ -1,12 +1,14 @@
 from constants import AUTH_REALM
 
-from gui.mods.Autoupdater.Common     import ErrorCodes, WarningCodes, Constants
-from gui.mods.Autoupdater.GUI.Common import GUIPaths
-from gui.mods.Autoupdater.Shared     import g_AutoupdaterShared
+from gui.mods.Autoupdater.Common     import *
+from gui.mods.Autoupdater.GUI.Common import *
+from gui.mods.Autoupdater.Shared     import *
 
 import json
 
 from os.path import exists
+
+__all__ = ('cases_by_postfix', 'htmlMsg', 'g_AUGUIShared')
 
 def cases_by_postfix(case, data, types):
     prefix  = data // 10
@@ -48,14 +50,18 @@ class Shared:
                     "Authors VK Group \"RAINN VOD\"",
                 ],
                 "msg" : {
-                    "updated"      : "Successfully updated %s mods",
-                    "partially"    : "Not all mods were installed successfully",
-                    "no_upd"       : "Not found any updates. You are using latest version %s #%s",
+                    "not_updated"  : "Not found any updates",
+                    "updated"      : "Updated %s mods",
+                    "deleted"      : "Deleted %s mods",
+                    "partially"    : "Not all mods were updated successfully",
                     "unexpected"   : "Unexpected error %s (%s)",
                     
                     "dep"          : "Dependency \"%s\":",
                     "mod"          : "Mod \"%s\":",
-                    "mod_upd"      : "Successfully updated to version %s #%s",
+                    
+                    "no_upd"       : "Not found any updates. You are using latest version %s #%s",
+                    "upd"          : "Updated to version %s #%s",
+                    "del"          : "Deleted",
                     
                     "mods"         : "mods",
                     "warn"         : "Warning!",
@@ -71,39 +77,42 @@ class Shared:
                     "close"        : "Close"
                 },
                 "msg_err" : {
-                    str(ErrorCodes.FAIL_TRANSLATIONS)      : "An error occured while loading autoupdater translations.\nPlease redownload the autoupdater",
-                    str(ErrorCodes.FAIL_CHECKING_ID)       : "An error occured while checking player ID",
-                    str(ErrorCodes.FILES_NOT_FOUND)        : "An error occured while loading autoupdater files.\nPlease redownload the autoupdater",
-                    str(ErrorCodes.LIC_INVALID)            : "License key is invalid",
-                    str(ErrorCodes.RESP_TOO_SMALL)         : "An error occured: getted empty response",
-                    #str(ErrorCodes.RESP_SIZE_INVALID)     : "An error occured: getted invalid response",
-                    str(ErrorCodes.FAIL_GETTING_MODS)      : "An error occured while getting mod list. Error code %s",
-                    str(ErrorCodes.FAIL_READING_MODS)      : "An error occured while reading mod list",
-                    str(ErrorCodes.FAIL_GETTING_DEPS)      : "An error occured while getting dependencies list. Error code %s",
-                    str(ErrorCodes.FAIL_READING_DEPS)      : "An error occured while reading dependencies list",
-                    str(ErrorCodes.FAIL_GETTING_FILES)     : "An error occured while getting files. Error code %s",
-                    str(ErrorCodes.FAIL_CREATING_FILE)     : "Cannot to update some files.\nThey will be updated after game restart",
-                    str(ErrorCodes.FAIL_DECODE_MOD_FIELDS) : "Getted incorrect mod data"
+                    "TRANSLATIONS"      : "An error occured while loading autoupdater translations.\nPlease redownload the autoupdater",
+                    "CHECKING_ID"       : "An error occured while checking player ID",
+                    "FILES_NOT_FOUND"        : "An error occured while loading autoupdater files.\nPlease redownload the autoupdater",
+                    "LIC_INVALID"            : "License key is invalid",
+                    "RESP_TOO_SMALL"         : "An error occured: getted empty response",
+                    "RESP_SIZE_INVALID"      : "An error occured: getted invalid response",
+                    "GETTING_MODS"      : "An error occured while getting mod list. Error code %s",
+                    "READING_MODS"      : "An error occured while reading mod list",
+                    "GETTING_DEPS"      : "An error occured while getting dependencies list. Error code %s",
+                    "READING_DEPS"      : "An error occured while reading dependencies list",
+                    "GETTING_FILES"     : "An error occured while getting files. Error code %s",
+                    "CREATING_FILE"     : "Unable to update some files.\nThey will be updated after game restart",
+                    "DECODE_MOD_FIELDS" : "Getted incorrect mod data",
+                    "DELETING_FILE"     : "Unable to delete some files.\nThey will be deleted after game restart"
                 },
                 "msg_warn" : {
-                    str(WarningCodes.FAIL_CHECKING_ID) : "Cannot to check player ID",
-                    str(WarningCodes.LIC_INVALID)      : "Invalid license key",
-                    str(WarningCodes.ID_NOT_FOUND)     : "ID was not found",
-                    str(WarningCodes.USER_NOT_FOUND)   : "You are not subscribed to Autoupdater.<br>You can subscribe it on \"https://pavel3333.ru/trajectorymod/lk\"",
-                    str(WarningCodes.TIME_EXPIRED)     : "Autoupdater subscription has expired.<br >You can renew the subscription on \"https://pavel3333.ru/trajectorymod/lk\"",
-                    str(WarningCodes.MOD_NOT_FOUND)    : "Mod was not found"
+                    "CHECKING_ID" : "Unable to check player ID",
+                    "LIC_INVALID"      : "Invalid license key",
+                    "ID_NOT_FOUND"     : "ID was not found",
+                    "USER_NOT_FOUND"   : "You are not subscribed to Autoupdater.<br>You can subscribe it on \"https://pavel3333.ru/trajectorymod/lk\"",
+                    "TIME_EXPIRED"     : "Autoupdater subscription has expired.<br >You can renew the subscription on \"https://pavel3333.ru/trajectorymod/lk\"",
+                    "MOD_NOT_FOUND"    : "Mod was not found"
                 },
                 "titles" : {
-                    "main" : "Autoupdater",
+                    "main" : Constants.MOD_NAME,
                     "procStart" : {
-                        str(Constants.GET_MODS_LIST) : "Getting mods list...",
-                        str(Constants.GET_DEPS)      : "Getting dependicies list...",
-                        str(Constants.GET_FILES)     : "Getting files..."
+                        "GET_MODS_LIST" : "Getting mods list...",
+                        "GET_DEPS"      : "Getting dependicies list...",
+                        "DEL_FILES"     : "Deleting old files...",
+                        "GET_FILES"     : "Getting files..."
                     },
                     "procDone"  : {
-                        str(Constants.GET_MODS_LIST) : "Getting mods list done",
-                        str(Constants.GET_DEPS)      : "Getting dependicies list done",
-                        str(Constants.GET_FILES)     : "Getting files done"
+                        "GET_MODS_LIST" : "Getting mods list done",
+                        "GET_DEPS"      : "Getting dependicies list done",
+                        "DEL_FILES"     : "Deleting old files done",
+                        "GET_FILES"     : "Getting files done"
                     }
                 },
                 "times_ru" : [
@@ -136,26 +145,26 @@ class Shared:
         }
 
         translations = {}
-        #try:
-        if exists(GUIPaths.TRANSLATION_PATH):
-            with open(GUIPaths.TRANSLATION_PATH, 'r') as fil:
-                translations = json.loads(fil.read())
-        else:
-            with open(GUIPaths.TRANSLATION_PATH, 'w') as fil:
-                fil.write(json.dumps(self.translations, sort_keys=True, indent=4))
-            translations = self.translations
-        
-        if all(self.checkSeqs(self.translations[key], translations.get(key, {})) for key in self.translations):
-            self.translations = translations
-        else:
-            with open(GUIPaths.TRANSLATION_PATH, 'w') as fil:
-                fil.write(json.dumps(self.translations, sort_keys=True, indent=4))
-        #except Exception:
-        #    g_AutoupdaterShared.setErr(ErrorCodes.FAIL_TRANSLATIONS)
+        try:
+            if exists(GUIPaths.TRANSLATION_PATH):
+                with open(GUIPaths.TRANSLATION_PATH, 'r') as fil:
+                    translations = json.loads(fil.read())
+            else:
+                with open(GUIPaths.TRANSLATION_PATH, 'w') as fil:
+                    fil.write(json.dumps(self.translations, sort_keys=True, indent=4))
+                translations = self.translations
+            
+            if all(self.checkSeqs(self.translations[key], translations.get(key, {})) for key in self.translations):
+                self.translations = translations
+            else:
+                with open(GUIPaths.TRANSLATION_PATH, 'w') as fil:
+                    fil.write(json.dumps(self.translations, sort_keys=True, indent=4))
+        except Exception:
+            g_AUShared.setErr(ErrorCode.index('TRANSLATIONS'))
 
         self.translation = self.translations.get(AUTH_REALM, self.translations['EU'])
     
-    def checkSeqs(self, seq1, seq2): #check if dic1 contains keys of dic2
+    def checkSeqs(self, seq1, seq2): # Check if dic1 contains keys of dic2
         if not isinstance(seq1, type(seq2)):
             return False
         
@@ -164,6 +173,24 @@ class Shared:
         elif isinstance(seq1, list):
             return len(seq1) == len(seq2) and all(self.checkSeqs(seq1[i], seq2[i]) for i in xrange(len(seq1)))
         return True
+    
+    def getMsg(key):
+        return self.translation['msg'][key]
+    
+    def getErrMsg(err):
+        return self.translation['msg_err'][getKey(err, ErrorCode)]
+    
+    def getWarnMsg(err):
+        return self.translation['msg_warn'][getKey(err, WarningCode)]
+    
+    def getTitle(key, err=None):
+        result = self.translation['titles'][key]
+        
+        if isinstance(result, dict):
+            if err is not None:
+                return result[getKey(err, ResponseType)]
+            raise KeyError('getTitle: err is None')
+        return result
     
     def show_format_date(self, case, data):
         if data:
@@ -194,4 +221,4 @@ class Shared:
                 self.show_format_date(2, hrs)    + \
                 self.show_format_date(3, mins)
 
-g_AutoupdaterGUIShared = Shared()
+g_AUGUIShared = Shared()

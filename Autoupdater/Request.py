@@ -1,8 +1,10 @@
-from Common import Constants
-from Packet import Packet
+from Common import *
+from Packet import *
 
 from struct import pack
 from urllib import urlencode
+
+__all__ = ('RequestHeader', 'Request')
 
 class RequestHeader():
     def __init__(self, ID, lic, req_type):

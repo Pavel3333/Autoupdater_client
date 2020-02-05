@@ -1,6 +1,6 @@
-from Common import ErrorCodes, DataUnits, Constants, Event, div1024
-from Shared import g_AutoupdaterEvents, g_AutoupdaterShared
-from Packet import StreamPacket
+from Common import *
+from Shared import *
+from Packet import *
 
 import json
 
@@ -8,22 +8,25 @@ from os      import makedirs
 from os.path import exists
 from struct  import unpack
 
+__all__ = ('Response', 'ModsListResponse', 'DepsResponse', 'FilesResponse')
 
 class Response(StreamPacket):
-    __slots__ = { 'failed', 'type', 'total_length', 'code' }
+    __slots__ = {'failed', 'type', 'total_length', 'code'}
     
     def __init__(self, urldata, resp_type):
         super(Response, self).__init__(Constants.AUTOUPDATER_URL, urldata)
         
-        self.failed = ErrorCodes.SUCCESS
+        self.failed = ErrorCode.index('SUCCESS')
         self.type   = resp_type
         
-        if   self.type == Constants.GET_MODS_LIST:
-            self.onDataProcessed = g_AutoupdaterEvents.onModsDataProcessed
-        elif self.type == Constants.GET_DEPS:
-            self.onDataProcessed = g_AutoupdaterEvents.onDepsDataProcessed
-        elif self.type == Constants.GET_FILES:
-            self.onDataProcessed = g_AutoupdaterEvents.onModFilesDataProcessed
+        types_events = {
+            ResponseType.index('GET_MODS_LIST') : 'Mods',
+            ResponseType.index('GET_DEPS')      : 'Deps',
+            ResponseType.index('GET_FILES')     : 'ModFiles'
+        }
+        
+        if self.type in types_events:
+            self.onDataProcessed = getattr(g_AUEvents, 'on%sDataProcessed'%(types_events[self.type]))
         else:
             raise NotImplementedError('Response type is not exists')
 
@@ -31,7 +34,7 @@ class Response(StreamPacket):
         self.code         = self.parse('B', 1)[0]
 
         if self.total_length < 3:
-            self.fail(ErrorCodes.RESP_TOO_SMALL)
+            self.fail(ErrorCode.index('RESP_TOO_SMALL'))
             return
     
     def fail(self, code):
@@ -45,10 +48,10 @@ class Response(StreamPacket):
         
         processed = self.total_processed
         total     = self.total_length
-        unit      = DataUnits.BYTES
+        unit      = DataUnits.index('B')
         
         while processed > 1024 or total > 1024:
-            if Constants.DATA_UNITS.get(unit + 1, None) is None:
+            if unit + 1 >= len(DataUnits):
                 break
             
             processed = div1024(processed)
@@ -71,7 +74,6 @@ class Response(StreamPacket):
     
     def read(self, size=None):
         if self.offset:
-            #print 'cleanup'
             self.chunk = self.chunk[self.offset : ]
             self.offset = 0
         if not size:
@@ -80,9 +82,7 @@ class Response(StreamPacket):
                 self.chunk += data
             return self.readAllChunk()
         else:
-            #print 'read %s bytes'%(size)
             while self.getChunkSize() < size:
-                #print 'get chunk', len(self.chunk)
                 self.chunk += self.conn.read(Constants.CHUNK_MAX_SIZE)
             return self.readChunk(size)
 
@@ -93,7 +93,7 @@ class Response(StreamPacket):
         return unpack(fmt, data)
 
 class ModsListResponse(Response):
-    __slots__ = { 'mods', 'time_exp' }
+    __slots__ = {'mods', 'time_exp'}
     
     def __init__(self, *args):
         super(ModsListResponse, self).__init__(*args)
@@ -103,18 +103,18 @@ class ModsListResponse(Response):
         
         self.init()
         
-        g_AutoupdaterShared.addRequestData(self.dict())
+        g_AUShared.addRequestData(self.dict())
     
     def init(self):
-        if self.code != ErrorCodes.SUCCESS:
-            self.fail(ErrorCodes.FAIL_GETTING_MODS)
+        if self.code != ErrorCode.index('SUCCESS'):
+            self.fail(ErrorCode.index('GETTING_MODS'))
             return
         
         try:
             self.time_exp = self.parse('I', 4)[0]
             self.mods = json.loads(self.read())
         except ValueError:
-            self.fail(ErrorCodes.FAIL_READING_MODS)
+            self.fail(ErrorCode.index('READING_MODS'))
     
     def slots(self):
         super_slots = super(ModsListResponse, self).__slots__
@@ -126,7 +126,7 @@ class ModsListResponse(Response):
         return dict((slot, getattr(self, slot, None)) for slot in self.slots())
 
 class DepsResponse(Response):
-    __slots__ = { 'dependencies', 'time_exp' }
+    __slots__ = {'dependencies', 'time_exp'}
     
     def __init__(self, *args):
         super(DepsResponse, self).__init__(*args)
@@ -135,17 +135,17 @@ class DepsResponse(Response):
         
         self.init()
         
-        g_AutoupdaterShared.addRequestData(self.dict())
+        g_AUShared.addRequestData(self.dict())
     
     def init(self):
-        if self.code != ErrorCodes.SUCCESS:
-            self.fail(ErrorCodes.FAIL_GETTING_DEPS)
+        if self.code != ErrorCode.index('SUCCESS'):
+            self.fail(ErrorCode.index('GETTING_DEPS'))
             return
         
         try:
             self.dependencies = json.loads(self.read())
         except ValueError:
-            self.fail(ErrorCodes.FAIL_READING_DEPS)
+            self.fail(ErrorCode.index('READING_DEPS'))
     
     def slots(self):
         super_slots = super(DepsResponse, self).__slots__
@@ -157,7 +157,7 @@ class DepsResponse(Response):
         return dict((slot, getattr(self, slot, None)) for slot in self.slots())
             
 class FilesResponse(Response):
-    __slots__ = { 'files_count', 'files' }
+    __slots__ = {'files_count', 'files'}
     
     def __init__(self, *args):
         super(FilesResponse, self).__init__(*args)
@@ -167,11 +167,11 @@ class FilesResponse(Response):
         
         self.init()
         
-        g_AutoupdaterShared.addRequestData(self.dict())
+        g_AUShared.addRequestData(self.dict())
     
     def init(self):
-        if self.code != ErrorCodes.SUCCESS:
-            self.fail(ErrorCodes.FAIL_GETTING_FILES)
+        if self.code != ErrorCode.index('SUCCESS'):
+            self.fail(ErrorCode.index('GETTING_FILES'))
             return
         
         self.files_count = self.parse('I', 4)[0]
@@ -191,7 +191,7 @@ class FilesResponse(Response):
                 with open('./' + path, 'wb') as fil:
                     fil.write(file_data)
             except Exception as e:
-                self.fail(ErrorCodes.FAIL_CREATING_FILE)
+                self.fail(ErrorCode.index('CREATING_FILE'))
                 
                 filename_pos = path.rfind('/')
                 trimmed_path = path if filename_pos == -1 else path[:filename_pos + 1]

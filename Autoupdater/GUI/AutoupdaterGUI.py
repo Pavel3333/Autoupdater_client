@@ -8,7 +8,7 @@ from notification.actions_handlers import NotificationsActionsHandlers
 
 import json
 
-from gui.mods.Autoupdater.Shared import g_AutoupdaterEvents, g_AutoupdaterShared
+from gui.mods.Autoupdater.Shared import g_AUEvents, g_AUShared
 
 class AutoupdaterGUI:
     def __init__(self):
@@ -18,22 +18,20 @@ class AutoupdaterGUI:
         self.showed_info    = 0
         self.showed_success = False
         
-        g_AutoupdaterEvents.onDataProcessed        += self.onDataProcessed
-        g_AutoupdaterEvents.onModsProcessingStart  += self.onModsProcessingStart
-        g_AutoupdaterEvents.onModsProcessingDone   += self.onModsProcessingDone
-        g_AutoupdaterEvents.onDepsProcessingStart  += self.onDepsProcessingStart
-        g_AutoupdaterEvents.onDepsProcessingDone   += self.onDepsProcessingDone
-        g_AutoupdaterEvents.onFilesProcessingStart += self.onFilesProcessingStart
-        g_AutoupdaterEvents.onFilesProcessingDone  += self.onFilesProcessingDone
+        g_AUEvents.onDataProcessed        += self.onDataProcessed
+        g_AUEvents.onModsProcessingStart  += self.onModsProcessingStart
+        g_AUEvents.onModsProcessingDone   += self.onModsProcessingDone
+        g_AUEvents.onDepsProcessingStart  += self.onDepsProcessingStart
+        g_AUEvents.onDepsProcessingDone   += self.onDepsProcessingDone
+        g_AUEvents.onFilesProcessingStart += self.onFilesProcessingStart
+        g_AUEvents.onFilesProcessingDone  += self.onFilesProcessingDone
         
-        #hooks
+        # Hooks
         _NotificationsActionsHandlers__handleAction = NotificationsActionsHandlers.handleAction
         NotificationsActionsHandlers.handleAction = lambda *args: self.handleAction(_NotificationsActionsHandlers__handleAction, *args)
         
         _LobbyView__populate = LobbyView._populate
         LobbyView._populate = lambda *args: self.lobbyPopulate(_LobbyView__populate, *args)
-        
-        #print self.checkFails()
 
     def lobbyPopulate(self, func, *args):
         func(*args)
@@ -52,7 +50,7 @@ class AutoupdaterGUI:
         
         if not self.battles_ctr % 4:
             message = self.checkFails()
-            print message
+            g_AUShared.logger.log(message)
             
             if not self.showed_success:
                 pushMessage(message, SM_TYPE.GameGreeting)
@@ -67,58 +65,44 @@ class AutoupdaterGUI:
             func(*args)
     
     def checkFails(self):
-        msg     = self.translation['msg']
-        msg_err = self.translation['msg_err']
-
-        err_code = g_AutoupdaterShared.getErr()
-        if err_code != ErrorCodes.SUCCESS:
+        err_code = g_AUShared.getErr()
+        if err_code != ErrorCode.index('SUCCESS'):
             self.showed_success = False
-            err, code = map(str, err_code)
-
-            err_msg = ''
+            err, code = err_code
             
-            if   err in SimplyErrorCodes:
-                err_msg = msg_err[err]
-            elif err in FormattedErrorCodes:
-                err_msg = msg_err[err]%(code)
-            else:
-                err_msg = msg['unexpected']%(err, code)
-
-            return self.htmlMsg(err_msg, color='ff0000')
+            return self.htmlMsg(g_AUGUIShared.handleServerErr(err, code), color='ff0000')
         
         
-        failed        = any(mod.failed != ErrorCodes.SUCCESS for mod in self.mods.values())
+        failed        = any(mod.failed != ErrorCode.index('SUCCESS') for mod in self.mods.values())
         updated_count = len(filter(lambda mod: bool(mod.needToUpdate), self.mods.values()))
+        deleted_count = len(filter(lambda mod: bool(mod.needToDelete), self.mods.values()))
         
         messages = ''
         
         if failed:
             self.showed_success = False
-            messages += self.htmlMsg(msg['partially'], color='ff0000', size=20, nl=2)
+            messages += self.htmlMsg(g_AUGUIShared.getMsg('partially'), color='ff0000', size=20, nl=2)
         else:
-            if updated_count:
-                messages += self.htmlMsg(msg['updated']%(updated_count), color='228b22', size=20, nl=2)
+            message = g_AUGUIShared.getMsg('success')
+            if updated_count or deleted_count:
+                message = g_AUGUIShared.getMsg('success')
+                if updated_count:
+                    message += ' ' + g_AUGUIShared.getMsg('updated')%(updated_count) + ';'
+                if deleted_count:
+                    message += ' ' + g_AUGUIShared.getMsg('updated')%(deleted_count) + ';'
+                messages += self.htmlMsg(message), color='228b22', size=20, nl=2)
             else:
-                messages += self.htmlMsg(msg['no_upd'], color='228b22', size=20)
+                messages += self.htmlMsg(g_AUGUIShared.getMsg('not_updated'), color='228b22', size=20)
         
         for mod in self.mods.values():
-            if mod.failed == ErrorCodes.SUCCESS:
-                messages += self.htmlMsg(msg['mod']%(mod.name), size=16)
-                messages += self.htmlMsg(msg['mod_upd'] if mod.needToUpdate else msg['no_upd'], color='228b22', size=16, nl=1)
+            if mod.failed == ErrorCode.index('SUCCESS'):
+                messages += self.htmlMsg(g_AUGUIShared.getMsg('mod')%(mod.name), size=16)
+                messages += self.htmlMsg(g_AUGUIShared.getMsg('mod_upd') if mod.needToUpdate else g_AUGUIShared.getMsg('no_upd'), color='228b22', size=16, nl=1)
             else:
-                err, code = map(str, mod.failed)
+                err, code = mod.failed
                 
-                messages += self.htmlMsg(msg['mod']%(mod.name), size=16)
-
-                err_msg = ''
-                if err in SimplyErrorCodes:
-                    err_msg = msg_err[err]
-                elif err in FormattedErrorCodes:
-                    err_msg = msg_err[err]%(code)
-                else:
-                    err_msg = msg['unexpected']%(err, code)
-                
-                messages += self.htmlMsg(err_msg, color='ffff00', size=16, nl=1)
+                messages += self.htmlMsg(g_AUGUIShared.getMsg('mod')%(mod.name), size=16)
+                messages += self.htmlMsg(g_AUGUIShared.handleServerErr(err, code), color='ffff00', size=16, nl=1)
 
         return messages
 

@@ -5,6 +5,8 @@ from gui.DialogsInterface import showDialog
 from gui.Scaleform.daapi.view.dialogs import DIALOG_BUTTON_ID
 from gui.Scaleform.daapi.view.dialogs import SimpleDialogMeta
 
+__all__ = ('SimpleDialog',)
+
 class DialogButtons(object):
     def __init__(self, close=None, submit=None):
         self.close = close
@@ -24,7 +26,6 @@ class DialogButtons(object):
         if self.submit is not None and self.close is not None:
             return [self._submit(self.submit, True), 
             self._close(self.close, False)]
-
 
 class SimpleDialog(object):
     def openUrlUp(self, url=None):

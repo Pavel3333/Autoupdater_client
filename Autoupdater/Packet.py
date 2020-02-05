@@ -1,20 +1,21 @@
-from Common import ErrorCodes
+from Common import *
 
 from urllib import urlopen
 
+__all__ = ('Packet', 'StreamPacket')
 
 class Packet(object):
     __slots__ = {'__string', 'code'}
     
     def __init__(self):
-        code = ErrorCodes.SUCCESS
+        code = ErrorCode.index('SUCCESS')
         self.__string = ''
         
     def __str__(self): return self.__string
     def __len__(self): return len(self.__string)
 
 class StreamPacket(object):
-    __slots__ = { 'conn', 'chunk', 'offset', 'total_processed', 'total_length', 'code', 'onDataProcessed' }
+    __slots__ = {'conn', 'chunk', 'offset', 'total_processed', 'total_length', 'code', 'onDataProcessed'}
     
     def __init__(self, url, urldata):
         self.conn = urlopen(url, urldata)
@@ -27,7 +28,7 @@ class StreamPacket(object):
         
         self.onDataProcessed = None
         
-        self.code            = ErrorCodes.SUCCESS
+        self.code            = ErrorCode.index('SUCCESS')
     
     def __del__(self):
         if self.conn is not None:

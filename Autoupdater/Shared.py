@@ -1,4 +1,23 @@
-from Common import ErrorCodes, Event
+from Common import *
+
+__all__ = ('Logger', 'Events', 'g_AUEvents', 'g_AUShared')
+
+class Logger(object):
+    __slots__ = {'log_file'}
+    
+    def __init__(self):
+        self.log_file = open(Paths.LOG_PATH, 'a')
+        
+        self.log_file.write('Start logging\n\n')
+    
+    def log(msg):
+        msg_fmt = '[%s]: %s'%(Constants.MOD_NAME, msg)
+        
+        print msg_fmt
+        self.log_file.write(msg_fmt + '\n')
+    
+    def __del__(self):
+        self.log_file.close()
 
 class Events:
     def __init__(self):
@@ -9,6 +28,10 @@ class Events:
         self.onDepsProcessingStart     = Event()
         self.onDepsDataProcessed       = Event()
         self.onDepsProcessingDone      = Event()
+        
+        self.onDeletingStart           = Event()
+        self.onDeletingProcessed       = Event()
+        self.onDeletingDone            = Event()
         
         self.onFilesProcessingStart    = Event()
         self.onModFilesProcessingStart = Event()
@@ -21,27 +44,31 @@ class Shared:
         self.mods         = {}
         self.dependencies = {}
         
+        self.undeletedPaths = set()
+        
         self.__requestsData = []
         
         self.window = None
+        self.logger = Logger()
         
-        self.err = ErrorCodes.SUCCESS
+        self.err = ErrorCode.index('SUCCESS')
     
     def setSuccess(self):
-        self.err = ErrorCodes.SUCCESS
+        self.err = ErrorCode.index('SUCCESS')
         
     def setErr(self, errCode, extraCode=0):
-        self.err = (errCode, extraCode)
+        if errCode == ErrorCode.index('SUCCESS'):
+            self.err = ErrorCode.index('SUCCESS')
+            return
         
-        if errCode == ErrorCodes.SUCCESS: return
+        self.err = (errCode, extraCode)
         
         import os
         import codecs
         import json
         from time import strftime
-        from Common import Constants
         
-        print 'Autoupdater failed with error %s (%s)'%(errCode, extraCode)
+        self.logger.log('Еrror %s (%s)'%(errCode, extraCode))
         
         dump = {
             'name' : 'dump ' + strftime('%d.%m.%Y %H_%M_%S') + '.json',
@@ -52,22 +79,76 @@ class Shared:
             }
         }
         
-        #try:
-        if not os.path.exists(Constants.DUMP_DIR):
-            os.makedirs(Constants.DUMP_DIR)
-        
-        with codecs.open(Constants.DUMP_DIR + dump['name'], 'w', 'utf-8') as dump_file:
-            json.dump(dump['data'], dump_file, ensure_ascii=False, sort_keys=True, indent=4)
-        
-        print 'Dump data was saved to', Constants.DUMP_DIR + dump['name']
-        #except Exception:
-        #    pass
-
+        try:
+            if not os.path.exists(Constants.DUMP_DIR):
+                os.makedirs(Constants.DUMP_DIR)
+            
+            with codecs.open(Constants.DUMP_DIR + dump['name'], 'w', 'utf-8') as dump_file:
+                json.dump(dump['data'], dump_file, ensure_ascii=False, sort_keys=True, indent=4)
+            
+            self.logger.log('Dump data was saved to', Constants.DUMP_DIR + dump['name'])
+        except Exception:
+            self.logger.log('Unable to save dump data')
+    
     def getErr(self):
         return self.err
+    
+    def handleErr(self, respType, err, code):
+        if respType in {
+            ResponseType.index('GET_MODS_LIST'),
+            ResponseType.index('GET_DEPS')
+            }:
+            if err == ErrorCode.index('SUCCESS'):
+                return
+            
+            if code in WarningCode.values():
+                msg = g_AUGUIShared.getWarnMsg(code)
+                if err == ErrorCode.index('GETTING_MODS'):
+                    code_key = {
+                        WarningCode['USER_NOT_FOUND'] : 'subscribe',
+                        WarningCode['TIME_EXPIRED']   : 'renew'
+                    }
+                    
+                    if code in code_key:
+                        key = code_key[code]
+                        
+                        self.createDialog(title=g_AUGUIShared.getMsg('warn'), message=msg, submit=g_AUGUIShared.getMsg(key), close=g_AUGUIShared.getMsg('close'), url='https://pavel3333.ru/trajectorymod/lk')
+            else:
+                msg = g_AUGUIShared.getMsg('unexpected')%(err, code)
+                
+            err_status = {
+                ErrorCode.index('GETTING_MODS') : StatusType.index('MODS_LIST'),
+                ErrorCode.index('GETTING_DEPS') : StatusType.index('DEPS')
+            }
+            
+            if self.window:
+                window.setStatus(err_status[err], htmlMsg(g_AUGUIShared.getMsg('warn') + ' ' + msg, color='ff0000'))
+    
+    def handleServerErr(err, code):
+        if code in AllErr:
+            msg = g_AUGUIShared.getErrMsg(err)
+            if code in FormatErr:
+                msg = msg%(code)
+            return msg
+        return g_AUGUIShared.getMsg('unexpected')%(err, code)
+    
+    def createDialog(*args, **kw):
+        if self.window is not None:
+            self.window.createDialog(*args, **kw)
+        else:
+            keys = ('title', 'message')
+            msg = ''
+            for key in keys:
+                if key in kw:
+                    msg += kw[key] + ' '
+            
+            if 'url' in kw:
+                msg += ' (%s)'%(kw['url'])
+            
+            self.logger.log(msg)
     
     def addRequestData(self, requestData):
         self.__requestsData.append(requestData)
 
-g_AutoupdaterEvents = Events()
-g_AutoupdaterShared = Shared()
+g_AUEvents = Events()
+g_AUShared = Shared()
