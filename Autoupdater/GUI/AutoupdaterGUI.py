@@ -74,8 +74,8 @@ class AutoupdaterGUI:
         
         
         failed        = any(mod.failed != ErrorCode.index('SUCCESS') for mod in self.mods.values())
-        updated_count = len(filter(lambda mod: bool(mod.needToUpdate), self.mods.values()))
-        deleted_count = len(filter(lambda mod: bool(mod.needToDelete), self.mods.values()))
+        updated_count = len(filter(lambda mod: bool(mod.needToUpdate['ID']), self.mods.values()))
+        deleted_count = len(filter(lambda mod: bool(mod.needToDelete['file']) or bool(mod.needToDelete['dir']), self.mods.values()))
         
         messages = ''
         
@@ -97,7 +97,7 @@ class AutoupdaterGUI:
         for mod in self.mods.values():
             if mod.failed == ErrorCode.index('SUCCESS'):
                 messages += self.htmlMsg(g_AUGUIShared.getMsg('mod')%(mod.name), size=16)
-                messages += self.htmlMsg(g_AUGUIShared.getMsg('mod_upd') if mod.needToUpdate else g_AUGUIShared.getMsg('no_upd'), color='228b22', size=16, nl=1)
+                messages += self.htmlMsg(g_AUGUIShared.getMsg('mod_upd') if mod.needToUpdate['ID'] else g_AUGUIShared.getMsg('no_upd'), color='228b22', size=16, nl=1)
             else:
                 err, code = mod.failed
                 

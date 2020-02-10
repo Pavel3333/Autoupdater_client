@@ -15,38 +15,38 @@ from time import sleep
 __all__ = ('g_WindowCommon',)
 
 INIT_DATA = {
-    "window": {
-        "title": g_AUGUIShared.getTitle('main'),
-        "useBottomBtns": True
+    "window" : {
+        "title"         : g_AUGUIShared.getTitle('main'),
+        "useBottomBtns" : True
     },
-    "modsListPrBar": {
-        "width":255,
-        "height":12,
-        "minValue": 0,
-        "maxValue": 100,
-        "useAnim": True,
-        "value": 0
+    "modsListPrBar" : {
+        "width"    : 255,
+        "height"   : 12,
+        "minValue" : 0,
+        "maxValue" : 100,
+        "useAnim"  : True,
+        "value"    : 0
     },
-    "filesDataPrBar": {
-        "width":255,
-        "height":12,
-        "minValue": 0,
-        "maxValue": 100,
-        "useAnim": True,
-        "value": 0
+    "filesDataPrBar" : {
+        "width"    : 255,
+        "height"   : 12,
+        "minValue" : 0,
+        "maxValue" : 100,
+        "useAnim"  : True,
+        "value"    : 0
     },
-    "filesTotalPrBar": {
-        "width":255,
-        "height":12,
-        "minValue": 0,
-        "maxValue": 100,
-        "useAnim": True,
-        "value": 0
+    "filesTotalPrBar" : {
+        "width"    : 255,
+        "height"   : 12,
+        "minValue" : 0,
+        "maxValue" : 100,
+        "useAnim"  : True,
+        "value"    : 0
     },
     "autoupdCloseBtn": {
-        "width":100,
-        "height":22,
-        "label":g_AUGUIShared.getMsg('close')
+        "width"  : 100,
+        "height" : 22,
+        "label"  : g_AUGUIShared.getMsg('close')
     }
 }
 
@@ -111,7 +111,7 @@ class AutoupdaterLobbyWindow(AbstractWindowView):
         if fobj is None: return
         
         if isinstance(unit, int):
-            unit = DataUnits[unit] if unit < len(DataUnits) else ''
+            unit = DataUnits[unit] if unit in xrange(len(DataUnits)) else ''
         
         progressValue = self.getProgress(processed, total)
         progressText  = '%s/%s %s'%(processed, total, unit)
@@ -185,13 +185,13 @@ class WindowCommon:
         return g_AUGUIShared.getTitle(key, respType)
     
     def getWindowTitle(self, respType, isStartProc):
-        g_AUGUIShared.getTitle('main')
-        status = self.getWindowStatus(respType, isStartProc)
+        mainTitle = g_AUGUIShared.getTitle('main')
         
+        status = self.getWindowStatus(respType, isStartProc)
         if status:
-            return mainTitle + ': ' + status
-        else:
-            return mainTitle
+            mainTitle += ': ' + status
+        
+        return mainTitle
     
     def onModsProcessingStart(self):
         respType = ResponseType.index('GET_MODS_LIST')
@@ -331,11 +331,11 @@ class WindowCommon:
         if   err == ErrorCode.index('SUCCESS'):
             color = '228b22'
             
-            if mod.needToDelete:
+            if mod.needToDelete['file'] or mod.needToDelete['dir']:
                 msg = g_AUGUIShared.getMsg('del')
             else:
                 key = 'no_upd'
-                if mod.needToUpdate:
+                if mod.needToUpdate['ID']:
                     key = 'upd'
                 msg = g_AUGUIShared.getMsg(key)%(mod.version, mod.build)
         else:

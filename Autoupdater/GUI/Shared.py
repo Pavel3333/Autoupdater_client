@@ -2,6 +2,8 @@ from constants import AUTH_REALM
 
 from gui.mods.Autoupdater import *
 
+from Common import *
+
 import json
 
 from os.path import exists
@@ -143,22 +145,22 @@ class Shared:
         }
 
         translations = {}
-        try:
-            if exists(GUIPaths.TRANSLATION_PATH):
-                with open(GUIPaths.TRANSLATION_PATH, 'r') as fil:
-                    translations = json.loads(fil.read())
-            else:
-                with open(GUIPaths.TRANSLATION_PATH, 'w') as fil:
-                    fil.write(json.dumps(self.translations, sort_keys=True, indent=4))
-                translations = self.translations
-            
-            if all(self.checkSeqs(self.translations[key], translations.get(key, {})) for key in self.translations):
-                self.translations = translations
-            else:
-                with open(GUIPaths.TRANSLATION_PATH, 'w') as fil:
-                    fil.write(json.dumps(self.translations, sort_keys=True, indent=4))
-        except Exception:
-            g_AUShared.setErr(ErrorCode.index('TRANSLATIONS'))
+        #try:
+        if exists(GUIPaths.TRANSLATION_PATH):
+            with open(GUIPaths.TRANSLATION_PATH, 'r') as fil:
+                translations = json.loads(fil.read())
+        else:
+            with open(GUIPaths.TRANSLATION_PATH, 'w') as fil:
+                fil.write(json.dumps(self.translations, sort_keys=True, indent=4))
+            translations = self.translations
+        
+        if all(self.checkSeqs(self.translations[key], translations.get(key, {})) for key in self.translations):
+            self.translations = translations
+        else:
+            with open(GUIPaths.TRANSLATION_PATH, 'w') as fil:
+                fil.write(json.dumps(self.translations, sort_keys=True, indent=4))
+        #except Exception:
+        #    g_AUShared.setErr(ErrorCode.index('TRANSLATIONS'))
 
         self.translation = self.translations.get(AUTH_REALM, self.translations['EU'])
     
@@ -172,21 +174,21 @@ class Shared:
             return len(seq1) == len(seq2) and all(self.checkSeqs(seq1[i], seq2[i]) for i in xrange(len(seq1)))
         return True
     
-    def getMsg(key):
+    def getMsg(self, key):
         return self.translation['msg'][key]
     
-    def getErrMsg(err):
-        return self.translation['msg_err'][getKey(err, ErrorCode)]
+    def getErrMsg(self, err):
+        return self.translation['msg_err'][ErrorCode[err]]
     
-    def getWarnMsg(err):
+    def getWarnMsg(self, err):
         return self.translation['msg_warn'][getKey(err, WarningCode)]
     
-    def getTitle(key, err=None):
+    def getTitle(self, key, err=None):
         result = self.translation['titles'][key]
         
         if isinstance(result, dict):
             if err is not None:
-                return result[getKey(err, ResponseType)]
+                return result[ResponseType[err]]
             raise KeyError('getTitle: err is None')
         return result
     

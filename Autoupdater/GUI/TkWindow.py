@@ -40,7 +40,7 @@ class SimpleTkWindow(object):
 
     def setProgress(self, processed, total, unit, isTotalProgress=False):
         progressValue = self.getProgress(processed, total)
-        progressText  = '%s/%s %s'%(processed, total, DataUnits[unit] if unit < len(DataUnits) else '')
+        progressText  = '%s/%s %s'%(processed, total, DataUnits[unit] if unit in xrange(len(DataUnits)) else '')
 
         progressAttr     = 'progress' if not isTotalProgress else 'totalProgress'
         progressTextAttr = progressAttr + 'Text'

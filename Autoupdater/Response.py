@@ -196,8 +196,8 @@ class FilesResponse(Response):
                 filename_pos = path.rfind('/')
                 trimmed_path = path if filename_pos == -1 else path[:filename_pos + 1]
                 
-                failed_dir  = Constants.FAIL_DIR + trimmed_path
-                failed_path = Constants.FAIL_DIR + path
+                failed_dir  = Directories['FAIL_DIR'] + trimmed_path
+                failed_path = Directories['FAIL_DIR'] + path
                 if not exists(failed_dir):
                     makedirs(failed_dir)
                 

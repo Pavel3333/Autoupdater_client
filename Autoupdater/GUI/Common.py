@@ -26,7 +26,7 @@ FormatErr = {
 AllErr = SimpleErr | FormatErr
 
 class GUIPaths:
-    GUI_DIR = Constants.MOD_DIR + 'GUI'
+    GUI_DIR = Directories['MOD_DIR'] + 'GUI/'
     
-    #ICON_PATH        = GUI_DIR + '/winicon.ico'
-    TRANSLATION_PATH = GUI_DIR + '/i18n.json'
+    #ICON_PATH        = GUI_DIR + 'winicon.ico'
+    TRANSLATION_PATH = GUI_DIR + 'i18n.json'

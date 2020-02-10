@@ -1,4 +1,4 @@
-__all__ = ('LangID', 'AUTH_REALM', 'ErrorCode', 'WarningCode', 'ResponseType', 'DataUnits', 'StatusType', 'ProgressType', 'getKey', 'Constants', 'Paths', 'Event', 'Mod')
+__all__ = ('LangID', 'AUTH_REALM', 'ErrorCode', 'WarningCode', 'ResponseType', 'DataUnits', 'StatusType', 'ProgressType', 'getKey', 'Constants', 'Directories', 'Paths', 'getLevels', 'Event', 'DeleteExclude', 'Mod')
 
 LangID = (
     'RU',
@@ -79,21 +79,30 @@ def getKey(err, codes={}):
 
 class Constants:
     MOD_NAME = 'Autoupdater'
-    
-    MOD_DIR  = './res/scripts/client/gui/mods/%s/'%(MOD_NAME)
-    FAIL_DIR = './%s_manual/'%(MOD_NAME)
-    DUMP_DIR = './%s_dumps/'%(MOD_NAME)
+    MOD_ID   = 'com.pavel3333.' + MOD_NAME + '.Helper'
 
     AUTOUPDATER_URL = 'http://api.pavel3333.ru/autoupdate.php'
 
     LIC_LEN        = 32
     CHUNK_MAX_SIZE = 65536
 
+Directories = {
+    'MOD_DIR'  : Constants.MOD_NAME + '/'
+}
+Directories.update({
+    'FAIL_DIR' : Directories['MOD_DIR'] + 'manual/',
+    'DUMP_DIR' : Directories['MOD_DIR'] + 'dumps/',
+    'X86_DIR'  : './win32/'
+})
+
 class Paths:
-    LIC_PATH        = Constants.MOD_DIR + Constants.MOD_NAME.upper() + '_%s.lic'
-    EXE_HELPER_PATH = './com.pavel3333.%s.Helper.exe'%(Constants.MOD_NAME)
-    DELETED_PATH    = './%s_delete.txt'%(Constants.MOD_NAME)
-    LOG_PATH        = './%s_log.txt'%(Constants.MOD_NAME)
+    LIC_PATH        = Directories['MOD_DIR'] + Constants.MOD_NAME.upper() + '_%s.lic'
+    EXE_HELPER_PATH = Directories['X86_DIR'] + Constants.MOD_ID + '.exe'
+    DELETED_PATH    = Directories['MOD_DIR'] + 'delete.txt'
+    LOG_PATH        = Directories['MOD_DIR'] + 'log.txt'
+
+def getLevels(path):
+    return len(filter(lambda level: bool(level), path.split('/')))
 
 class Event(object):
     def __init__(self):
@@ -107,6 +116,32 @@ class Event(object):
         self.queue.append(func)
         return self
 
+DeleteExclude = {
+    'dir' : {
+        'game_metadata',
+        'mods',
+        'mods/1.7.1.2', #TODO
+        'replays',
+        'res',
+        'res_mods',
+        'res_mods/1.7.1.2', #TODO
+        'screenshots',
+        'updates',
+        'win32',
+        'win64'
+    },
+    'file': {
+        'app_type.xml',
+        'game_info.xml',
+        'Licenses.txt',
+        'paths.xml',
+        'version.xml',
+        'wgc_api.exe',
+        'WorldOfTanks.exe',
+        'WorldOfTanks.ico'
+    }
+}
+
 import json
 
 from os      import makedirs
@@ -114,15 +149,19 @@ from os.path import exists
 from hashlib import md5
 
 class Mod(object):
-    __slots__ = { 'failed', 'needToUpdate', 'needToUpdatePaths', 'needToDeletePaths', 'id', 'enabled', 'name', 'description', 'version', 'build', 'tree', 'names', 'hashes', 'dependencies' }
+    __slots__ = { 'failed', 'needToUpdate', 'needToDelete', 'id', 'enabled', 'name', 'description', 'version', 'build', 'tree', 'names', 'hashes', 'dependencies' }
     
     def __init__(self, mod):
         self.failed = ErrorCode.index('SUCCESS')
         
-        self.needToUpdate = set()
-        
-        self.needToUpdatePaths = set()
-        self.needToDeletePaths = set()
+        self.needToUpdate = { # Updating only files
+            'ID'   : set(),
+            'file' : set()
+        }
+        self.needToDelete = { # Deleting files and directories
+            'file' : set(),
+            'dir'  : set()
+        }
         
         try:
             self.id          = mod['id'], 
@@ -152,18 +191,18 @@ class Mod(object):
             if curr_dic[ID] == 0:
                 if not exists(subpath):
                     if self.enabled:
-                        self.needToUpdate.add(ID)
-                        self.needToUpdatePaths.add(subpath)
+                        self.needToUpdate['ID'].add(ID)
+                        self.needToUpdate['file'].add(subpath)
                     continue
                 elif not self.enabled:
-                    self.needToDeletePaths.add(subpath)
+                    self.needToDelete['file'].add(subpath)
                     continue
                 
                 hash_ = md5(open(subpath, 'rb').read()).hexdigest()
 
                 if hash_ != self.hashes[ID]:
-                    self.needToUpdate.add(ID)
-                    self.needToUpdatePaths.add(subpath)
+                    self.needToUpdate['ID'].add(ID)
+                    self.needToUpdate['file'].add(subpath)
             else:
                 if self.enabled and not exists(subpath):
                     makedirs(subpath)
@@ -171,7 +210,7 @@ class Mod(object):
                 self.parseTree(subpath + '/', curr_dic[ID])
                 
                 if not self.enabled:
-                    self.needToDeletePaths.add(subpath)
+                    self.needToDelete['dir'].add(subpath)
     
     def dict(self):
         return dict((slot, getattr(self, slot, None)) for slot in self.__slots__)

@@ -10,13 +10,20 @@ class Logger(object):
         
         self.log_file.write('Start logging\n\n')
     
-    def log(msg):
-        msg_fmt = '[%s]: %s'%(Constants.MOD_NAME, msg)
+    def log(self, *args):
+        msg = '[' + Constants.MOD_NAME + ']: '
         
-        print msg_fmt
-        self.log_file.write(msg_fmt + '\n')
+        args_len = len(args)
+        for i in xrange(args_len):
+            msg += args[i]
+            if i < args_len - 1:
+                msg += ' '
+        
+        print msg
+        self.log_file.write(msg + '\n')
     
     def __del__(self):
+        self.log_file.write('Stop logging')
         self.log_file.close()
 
 class Events:
@@ -68,7 +75,9 @@ class Shared:
         import json
         from time import strftime
         
-        self.logger.log('Еrror %s (%s)'%(errCode, extraCode))
+        if errCode in xrange(len(ErrorCode)):
+            errCode = ErrorCode[errCode]
+        self.logger.log('Error %s (%s)'%(errCode, extraCode))
         
         dump = {
             'name' : 'dump ' + strftime('%d.%m.%Y %H_%M_%S') + '.json',
@@ -79,16 +88,13 @@ class Shared:
             }
         }
         
-        try:
-            if not os.path.exists(Constants.DUMP_DIR):
-                os.makedirs(Constants.DUMP_DIR)
-            
-            with codecs.open(Constants.DUMP_DIR + dump['name'], 'w', 'utf-8') as dump_file:
-                json.dump(dump['data'], dump_file, ensure_ascii=False, sort_keys=True, indent=4)
-            
-            self.logger.log('Dump data was saved to', Constants.DUMP_DIR + dump['name'])
-        except Exception:
-            self.logger.log('Unable to save dump data')
+        #try:
+        with codecs.open(Directories['DUMP_DIR'] + dump['name'], 'w', 'utf-8') as dump_file:
+            json.dump(dump['data'], dump_file, ensure_ascii=False, sort_keys=True, indent=4)
+        
+        self.logger.log('Dump data was saved to', Directories['DUMP_DIR'] + dump['name'])
+        #except Exception:
+        #    self.logger.log('Unable to save dump data')
     
     def getErr(self):
         return self.err

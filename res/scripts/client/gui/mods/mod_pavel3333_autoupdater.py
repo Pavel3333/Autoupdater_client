@@ -1,14 +1,23 @@
+import BigWorld
+import BattleReplay
+
+from PlayerEvents import g_playerEvents
+
+from helpers import dependency
+from skeletons.gui.shared.utils import IHangarSpace
+
 import json
 
-from os      import makedirs, remove, rmdir
+from os      import listdir, makedirs, remove, rmdir
 from os.path import exists, isfile
 
 class Autoupdater:
     hangarSpace = dependency.descriptor(IHangarSpace)
     
     def __init__(self):
-        if not exists(Constants.MOD_DIR):
-            makedirs(Constants.MOD_DIR)
+        for directory in Directories.values():
+            if not exists(directory):
+                makedirs(directory)
 
         self.exp = 0 # AHHH SHIT MOVE IT TO CYTHON PLS
         self.ID  = 0
@@ -21,8 +30,6 @@ class Autoupdater:
         g_playerEvents.onAccountShowGUI += self.getID
     
     def getID(self, ctx, *args):
-        print 'ctx', ctx
-        
         self.ID = ctx.get('databaseID', 0)
         
         if not self.ID:
@@ -48,15 +55,15 @@ class Autoupdater:
         
         if g_AUShared.getErr() != ErrorCode.index('SUCCESS'): return
         
-        try:
-            from gui.mods.Autoupdater.GUI.Window import *
-            
-            window = g_WindowCommon.createWindow()
-            if window is not None:
-                window.onWindowPopulate += self.getModsList
-                return
-        except Exception:
-            g_AUShared.logger.log('Unable to load GUI module')
+        #try:
+        from gui.mods.Autoupdater.GUI.Window import g_WindowCommon
+        
+        window = g_WindowCommon.createWindow()
+        if window is not None:
+            window.onWindowPopulate += self.getModsList
+            return
+        #except Exception:
+        #    g_AUShared.logger.log('Unable to load GUI module')
         
         self.getModsList()
     
@@ -90,8 +97,11 @@ class Autoupdater:
         
         dependencies = set()
         
-        updatePaths = set()
-        deletePaths = set()
+        toUpdate = set()
+        toDelete = {
+            'file' : set(),
+            'dir'  : set()
+        }
         
         for modID in mods:
             mod = g_AUShared.mods[modID] = Mod(mods[modID])
@@ -99,8 +109,9 @@ class Autoupdater:
             
             dependencies.update(mod.dependencies)
             
-            updatePaths.update(mod.needToUpdatePaths)
-            deletePaths.update(mod.needToDeletePaths)
+            toUpdate.update(mod.needToUpdate['file'])
+            toDelete['file'].update(mod.needToDelete['file'])
+            toDelete['dir'].update(mod.needToDelete['del'])
         
         req_header = RequestHeader(self.ID, self.lic, respType)
         req        = Request(req_header)
@@ -124,37 +135,59 @@ class Autoupdater:
             dependency = g_AUShared.dependencies[dependencyID] = Mod(deps[dependencyID])
             dependency.parseTree('./', dependency.tree)
             
-            updatePaths.update(dependency.needToUpdatePaths)
-            deletePaths.update(dependency.needToDeletePaths)
+            toUpdate.update(dependency.needToUpdate['file'])
+            toDelete['file'].update(dependency.needToDelete['file'])
+            toDelete['dir'].update(dependency.needToDelete['del'])
         
-        deletePaths -= updatePaths
+        toDelete['file'] -= toUpdate['file']
+        toDelete['dir']  -= toUpdate['dir']
         
-        self.delFiles(deletePaths)
+        toDelete['file'] -= DeleteExclude['file']
+        toDelete['dir']  -= DeleteExclude['dir']
+        
+        toDelete['dir'] = sorted(
+            toDelete['dir'],
+            key = getLevels,
+            reverse = True
+        )
+        
+        print 'toDelete["dir"]', toDelete['dir']
+        
+        self.delFiles(toDelete)
     
     def delFiles(self, paths):
         if g_AUShared.getErr() != ErrorCode.index('SUCCESS'): return
         
-        paths_count = len(paths)
+        paths_count = len(paths['file']) + len(paths['dir'])
         
-        undeletedPaths = set()
+        undeletedPaths = []
         
         g_AUEvents.onDeletingStart(paths_count)
         
         i = 0
-        for path in paths:
+        for path in paths['file']:
             if exists(path):
                 try:
-                    if isfile(path):
-                        remove(path)
-                    else:
-                        rmdir(path)
+                    remove(path)
                     i += 1
                 except Exception:
-                    g_AUShared.undeletedPaths.add(path)
-                    g_AUShared.logger.log('Unable to delete %s'%(path))
+                    g_AUShared.undeletedPaths.append(path)
+                    g_AUShared.logger.log('Unable to delete file %s'%(path))
                     g_AUShared.setErr(ErrorCode.index('DELETING_FILE'))
             else:
-                g_AUShared.logger.log('Path %s is not exists'%(path))
+                g_AUShared.logger.log('File %s is not exists'%(path))
+        
+        for path in paths['dir']:
+            if exists(path) and not listdir(path):
+                try:
+                    rmdir(path)
+                    i += 1
+                except Exception:
+                    g_AUShared.undeletedPaths.append(path)
+                    g_AUShared.logger.log('Unable to delete directory %s'%(path))
+                    g_AUShared.setErr(ErrorCode.index('DELETING_FILE'))
+            else:
+                g_AUShared.logger.log('Directory %s is not exists'%(path))
         
         deleteAfterFini = bool(g_AUShared.undeletedPaths)
         
@@ -185,8 +218,8 @@ class Autoupdater:
             req_header = RequestHeader(self.ID, self.lic, ResponseType.index('GET_FILES'))
             req = Request(req_header)
             req.parse('H', int(modID))
-            req.parse('I', len(mod.needToUpdate))
-            for updID in mod.needToUpdate:
+            req.parse('I', len(mod.needToUpdate['ID']))
+            for updID in mod.needToUpdate['ID']:
                 req.parse('I', int(updID))
             
             g_AUEvents.onModFilesProcessingStart(i, mod.name)
@@ -222,24 +255,11 @@ class Autoupdater:
         subprocess.Popen(Paths.EXE_HELPER_PATH, shell=True, creationflags=DETACHED_PROCESS)
         
         func(*args)
-
-try:
-    import BigWorld
-    import BattleReplay
-
-    from PlayerEvents import g_playerEvents
-
-    from helpers import dependency
-    from skeletons.gui.shared.utils import IHangarSpace
-
-    isReplay = BattleReplay.isPlaying()
     
-    try:
-        from gui.mods.Autoupdater import *
-        
-        if not isReplay:
-            g_Autoupdater = Autoupdater()
-    except ImportError:
-        print '[CRITICAL ERROR] Autoupdater: Unable to load mod files. Autoupdater will not loaded!'
-except:
-    print '[CRITICAL ERROR] Autoupdater: Unable to load game modules. Autoupdater will not loaded!'
+try:
+    from gui.mods.Autoupdater import *
+    
+    if not BattleReplay.isPlaying():
+        g_Autoupdater = Autoupdater()
+except ImportError:
+    print '[CRITICAL ERROR] Autoupdater: Unable to load mod files. Autoupdater will not loaded!'
