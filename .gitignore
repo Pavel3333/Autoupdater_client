@@ -14,3 +14,4 @@ screenshots
 updates
 app_type.xml
 cef.log
+*.pyc
