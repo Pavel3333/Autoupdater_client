@@ -22,18 +22,19 @@ ErrorCode = (
     'CHECKING_ID',       # 3
     'FILES_NOT_FOUND',   # 4
     'LIC_INVALID',       # 5
-    'RESP_TOO_SMALL',    # 6
-    'RESP_SIZE_INVALID', # 7
-    'GETTING_MODS',      # 8
-    'READING_MODS',      # 9
-    'GETTING_DEPS',      # 10
-    'READING_DEPS',      # 11
-    'GETTING_FILES',     # 12
-    'INVALID_FILE_SIZE', # 13
-    'CREATING_FILE',     # 14
-    'GET_MOD_FIELDS',    # 15
-    'DECODE_MOD_FIELDS', # 16
-    'DELETING_FILE'      # 17
+    'CONNECT',           # 6
+    'RESP_TOO_SMALL',    # 7
+    'RESP_SIZE_INVALID', # 8
+    'GETTING_MODS',      # 9
+    'READING_MODS',      # 10
+    'GETTING_DEPS',      # 11
+    'READING_DEPS',      # 12
+    'GETTING_FILES',     # 13
+    'INVALID_FILE_SIZE', # 14
+    'CREATING_FILE',     # 15
+    'GET_MOD_FIELDS',    # 16
+    'DECODE_MOD_FIELDS', # 17
+    'DELETING_FILE'      # 18
 )
 
 WarningCode = {
@@ -42,7 +43,7 @@ WarningCode = {
     'ID_NOT_FOUND'   : 11,
     'USER_NOT_FOUND' : 12,
     'TIME_EXPIRED'   : 13,
-    'MOD_NOT_FOUND'  : 20
+    'MOD_NOT_FOUND'  : 21
 }
 
 ResponseType = (
@@ -82,30 +83,35 @@ def getKey(err, codes={}):
     raise KeyError('Error %s was not found'%(err))
 
 def getJSON(path, pattern):
+    import json
+    
+    from os.path import exists
+    
     try:
         raw = {}
         
         if exists(path):
             with open(path, 'r') as fil:
-                raw = json.loads(fil.read())
+                raw = json.load(fil)
         else:
             with open(path, 'w') as fil:
-                fil.write(json.dumps(pattern, sort_keys=True, indent=4))
+                json.dump(pattern, fil, sort_keys=True, indent=4)
             raw = pattern
         
         if all(checkSeqs(pattern[key], raw.get(key, {})) for key in pattern):
             return raw
         else:
             with open(path, 'w') as fil:
-                fil.write(json.dumps(pattern, sort_keys=True, indent=4))
+                json.dump(pattern, fil, sort_keys=True, indent=4)
             return pattern
     except:
         return False
 
-def checkSeqs(self, seq1, seq2): # Check if dic1 contains keys of dic2
+def checkSeqs(seq1, seq2): # Check if dic1 contains keys of dic2
     if not isinstance(seq1, type(seq2)):
-        return False
-    
+        string_types = (str, unicode)
+        if type(seq1) not in string_types or type(seq2) not in string_types:
+            return False
     if isinstance(seq1, dict):
         return all(key in seq2 and checkSeqs(seq1[key], seq2[key]) for key in seq1)
     elif isinstance(seq1, list):
@@ -201,16 +207,16 @@ class Mod(object):
             'dir'  : set()
         }
         
-        #try:
-        self.id          = mod['id'], 
-        self.enabled     = bool(mod['enabled']),
-        self.name        = mod['name']
-        self.description = mod['description']
-        self.version     = mod['version']
-        self.build       = mod['build']
-        #except KeyError:
-        #    self.failed = ErrorCode.index('GET_MOD_FIELDS')
-        #    return
+        try:
+            self.id          = mod['id']
+            self.enabled     = mod['enabled']
+            self.name        = mod['name']
+            self.description = mod['description']
+            self.version     = mod['version']
+            self.build       = mod['build']
+        except KeyError:
+            self.failed = ErrorCode.index('GET_MOD_FIELDS')
+            return
         
         try:
             self.tree   = json.loads(mod['tree'])

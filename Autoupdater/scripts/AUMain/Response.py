@@ -21,6 +21,10 @@ class Response(StreamPacket):
         self.type         = resp_type
         self.total_length = 0
         
+        if self.conn is None:
+            self.fail(ErrorCode.index('CONNECT'))
+            return
+        
         types_events = {
             ResponseType.index('GET_MODS_LIST') : 'Mods',
             ResponseType.index('GET_DEPS')      : 'Deps',
@@ -175,13 +179,13 @@ class FilesResponse(Response):
         for i in xrange(self.files_count):
             path_len = self.parse('H', 2)[0]
             path = self.read(path_len)
-            print 'path', path
             file_size = self.parse('I', 4)[0]
+            file_data = ''
             if file_size > self.total_length:
                 self.fail(ErrorCode.index('INVALID_FILE_SIZE'))
                 return
-            
-            file_data = self.read(file_size)
+            elif file_size > 0:
+                file_data = file_data = self.read(file_size)
             
             self.files.append({
                 'path'      : path,

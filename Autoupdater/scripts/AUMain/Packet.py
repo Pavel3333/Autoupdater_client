@@ -18,7 +18,10 @@ class StreamPacket(object):
     __slots__ = {'conn', 'chunk', 'debug_data', 'offset', 'total_processed', 'total_length', 'onDataProcessed'}
     
     def __init__(self, url, urldata):
-        self.conn = urlopen(url, urldata)
+        try:
+            self.conn = urlopen(url, urldata)
+        except:
+            self.conn = None
         
         self.chunk           = ''
         self.debug_data      = ''

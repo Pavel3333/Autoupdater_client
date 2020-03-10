@@ -1,6 +1,6 @@
 from Common import *
 
-__all__ = ('Logger', 'Config', 'Events', 'g_AUEvents', 'g_AUShared')
+__all__ = ('Logger', 'Events', 'g_AUEvents', 'g_AUShared')
 
 class Logger(object):
     __slots__ = {'log_file'}

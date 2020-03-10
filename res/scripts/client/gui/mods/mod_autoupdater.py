@@ -101,7 +101,10 @@ class Autoupdater:
         
         respType = ResponseType.index('GET_DEPS')
         
-        dependencies = set()
+        dependencies = {
+            'enabled'  : set(),
+            'disabled' : set()
+        }
         
         toUpdate = set()
         toDelete = {
@@ -116,18 +119,22 @@ class Autoupdater:
                 return
             mod.parseTree('./', mod.tree)
             
-            dependencies.update(mod.dependencies)
+            dependencies['enabled' if mod.enabled else 'disabled'].update(mod.dependencies)
             
             toUpdate.update(mod.needToUpdate['file'])
             toDelete['file'].update(mod.needToDelete['file'])
             toDelete['dir'].update(mod.needToDelete['dir'])
         
+        dependencies['disabled'] -= dependencies['enabled']
+        
         req_header = RequestHeader(self.ID, self.lic, respType)
         req        = Request(req_header)
         req.parse('B', self.langID)
-        req.parse('H', len(dependencies))
-        for dependencyID in dependencies:
-            req.parse('H', dependencyID)
+        req.parse('H', len(dependencies['enabled'] | dependencies['disabled']))
+        for key in dependencies:
+            for dependencyID in dependencies[key]:
+                req.parse('H', dependencyID)
+                req.parse('B', 1 if key == 'enabled' else 0)
         
         g_AUEvents.onDepsProcessingStart()
         
@@ -201,8 +208,8 @@ class Autoupdater:
                 except Exception:
                     g_AUShared.undeletedPaths.append(path)
                     g_AUShared.logger.log('Unable to delete file %s'%(path))
-            else:
-                g_AUShared.logger.log('File %s is not exists'%(path))
+            #else:
+            #    g_AUShared.logger.log('File %s is not exists'%(path))
         
         for path in paths['dir']:
             if exists(path) and not listdir(path):
@@ -214,8 +221,8 @@ class Autoupdater:
                     g_AUShared.logger.log('Unable to delete directory %s'%(path))
                     g_AUShared.setErr(ErrorCode.index('DELETING_FILE'))
                     break
-            else:
-                g_AUShared.logger.log('Directory %s is not exists'%(path))
+            #else:
+            #    g_AUShared.logger.log('Directory %s is not empty'%(path))
         
         self.deleteAfterFini = bool(g_AUShared.undeletedPaths)
         
@@ -226,7 +233,7 @@ class Autoupdater:
     def getFiles(self, mods, isDependency):
         if g_AUShared.getErr() != ErrorCode.index('SUCCESS'): return 0
         
-        mods_count = len(mods)
+        mods_count = len(filter(lambda mod: mod.needToUpdate['ID'], mods.values()))
         
         g_AUEvents.onFilesProcessingStart(mods_count)
         
@@ -263,6 +270,8 @@ class Autoupdater:
     def hookFini(self):
         if self.finiHooked: return
         
+        print 'hooking fini...'
+        
         try:
             import game
             _game__fini = game.fini
@@ -272,9 +281,11 @@ class Autoupdater:
             g_AUShared.logger.log('Unable to hook fini')
     
     def onGameFini(self, func, *args):
+        print 'starting helper process...'
+        
         import subprocess
         DETACHED_PROCESS = 0x00000008
-        subprocess.Popen(Paths.EXE_HELPER_PATH, shell=True, creationflags=DETACHED_PROCESS)
+        subprocess.Popen(Paths.EXE_HELPER_PATH, creationflags=DETACHED_PROCESS) # shell=True, 
         
         func(*args)
     

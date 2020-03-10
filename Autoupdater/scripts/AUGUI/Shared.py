@@ -41,120 +41,117 @@ def htmlMsg(msg, color=None, size=None, nl=0):
 
 class Shared:
     def __init__(self):
-        self.translations = {
-            "EU" : {
-                "info" : [
-                    "Pavel3333 Mods Autoupdater",
-                    "Author: Pavel3333 from RAINN VOD team",
-                    "Authors YouTube channel \"RAINN VOD\"",
-                    "Authors VK Group \"RAINN VOD\"",
+        self.translation = {
+            "info" : [
+                "Pavel3333 Mods Autoupdater",
+                "Author: Pavel3333 from RAINN VOD team",
+                "Authors YouTube channel \"RAINN VOD\"",
+                "Authors VK Group \"RAINN VOD\"",
+            ],
+            "msg" : {
+                "not_updated"  : "Not found any updates",
+                "updated"      : "Updated %s mods",
+                "deleted"      : "Deleted %s mods",
+                "partially"    : "Not all mods were updated successfully",
+                "unexpected"   : "Unexpected error %s (%s)",
+                
+                "dep"          : "Dependency \"%s\":",
+                "mod"          : "Mod \"%s\":",
+                
+                "no_upd"       : "Not found any updates. You are using latest version %s #%s",
+                "upd"          : "Updated to version %s #%s",
+                "del"          : "Deleted",
+                
+                "mods"         : "mods",
+                "warn"         : "Warning!",
+                
+                "expires"      : "Autoupdater subscription expires after",
+                
+                "subscribe"    : "Subscribe",
+                "renew"        : "Renew subscription",
+                
+                "updated_desc" : "The changes will take effect after the client restarts",
+                "restart"      : "Restart",
+                
+                "close"        : "Close"
+            },
+            "msg_err" : {
+                "TRANSLATIONS"      : "An error occured while loading autoupdater translations.\nPlease redownload the autoupdater",
+                "CONFIG"            : "An error occured while loading autoupdater config.\nPlease redownload the autoupdater",
+                "CHECKING_ID"       : "An error occured while checking player ID",
+                "FILES_NOT_FOUND"   : "An error occured while loading autoupdater files.\nPlease redownload the autoupdater",
+                "LIC_INVALID"       : "License key is invalid",
+                "CONNECT"           : "Unable to connect to the server",
+                "RESP_TOO_SMALL"    : "An error occured: getted empty response",
+                "RESP_SIZE_INVALID" : "An error occured: getted invalid response",
+                "GETTING_MODS"      : "An error occured while getting mod list. Error code %s",
+                "READING_MODS"      : "An error occured while reading mod list",
+                "GETTING_DEPS"      : "An error occured while getting dependencies list. Error code %s",
+                "READING_DEPS"      : "An error occured while reading dependencies list",
+                "INVALID_FILE_SIZE" : "Got invalid file size",
+                "GETTING_FILES"     : "An error occured while getting files. Error code %s",
+                "CREATING_FILE"     : "Unable to update some files.\nThey will be updated after game restart",
+                "DECODE_MOD_FIELDS" : "Getted incorrect mod data",
+                "DELETING_FILE"     : "Unable to delete some files.\nThey will be deleted after game restart"
+            },
+            "msg_warn" : {
+                "CHECKING_ID"      : "Unable to check player ID",
+                "LIC_INVALID"      : "Invalid license key",
+                "ID_NOT_FOUND"     : "ID was not found",
+                "USER_NOT_FOUND"   : "You are not subscribed to Autoupdater.<br>You can subscribe it on \"https://pavel3333.ru/trajectorymod/lk\"",
+                "TIME_EXPIRED"     : "Autoupdater subscription has expired.<br >You can renew the subscription on \"https://pavel3333.ru/trajectorymod/lk\"",
+                "MOD_NOT_FOUND"    : "Mod was not found"
+            },
+            "titles" : {
+                "main" : Constants.MOD_NAME,
+                "procStart" : {
+                    "GET_MODS_LIST" : "Getting mods list...",
+                    "GET_DEPS"      : "Getting dependicies list...",
+                    "DEL_FILES"     : "Deleting old files...",
+                    "GET_FILES"     : "Getting files..."
+                },
+                "procDone"  : {
+                    "GET_MODS_LIST" : "Getting mods list done",
+                    "GET_DEPS"      : "Getting dependicies list done",
+                    "DEL_FILES"     : "Deleting old files done",
+                    "GET_FILES"     : "Getting files done"
+                }
+            },
+            "times_ru" : [
+                [
+                    "months",
+                    "days",
+                    "hours",
+                    "minutes"
                 ],
-                "msg" : {
-                    "not_updated"  : "Not found any updates",
-                    "updated"      : "Updated %s mods",
-                    "deleted"      : "Deleted %s mods",
-                    "partially"    : "Not all mods were updated successfully",
-                    "unexpected"   : "Unexpected error %s (%s)",
-                    
-                    "dep"          : "Dependency \"%s\":",
-                    "mod"          : "Mod \"%s\":",
-                    
-                    "no_upd"       : "Not found any updates. You are using latest version %s #%s",
-                    "upd"          : "Updated to version %s #%s",
-                    "del"          : "Deleted",
-                    
-                    "mods"         : "mods",
-                    "warn"         : "Warning!",
-                    
-                    "expires"      : "Autoupdater subscription expires after",
-                    
-                    "subscribe"    : "Subscribe",
-                    "renew"        : "Renew subscription",
-                    
-                    "updated_desc" : "The changes will take effect after the client restarts",
-                    "restart"      : "Restart",
-                    
-                    "close"        : "Close"
-                },
-                "msg_err" : {
-                    "TRANSLATIONS"      : "An error occured while loading autoupdater translations.\nPlease redownload the autoupdater",
-                    "CONFIG"            : "An error occured while loading autoupdater config.\nPlease redownload the autoupdater",
-                    "CHECKING_ID"       : "An error occured while checking player ID",
-                    "FILES_NOT_FOUND"   : "An error occured while loading autoupdater files.\nPlease redownload the autoupdater",
-                    "LIC_INVALID"       : "License key is invalid",
-                    "RESP_TOO_SMALL"    : "An error occured: getted empty response",
-                    "RESP_SIZE_INVALID" : "An error occured: getted invalid response",
-                    "GETTING_MODS"      : "An error occured while getting mod list. Error code %s",
-                    "READING_MODS"      : "An error occured while reading mod list",
-                    "GETTING_DEPS"      : "An error occured while getting dependencies list. Error code %s",
-                    "READING_DEPS"      : "An error occured while reading dependencies list",
-                    "INVALID_FILE_SIZE" : "Got invalid file size",
-                    "GETTING_FILES"     : "An error occured while getting files. Error code %s",
-                    "CREATING_FILE"     : "Unable to update some files.\nThey will be updated after game restart",
-                    "DECODE_MOD_FIELDS" : "Getted incorrect mod data",
-                    "DELETING_FILE"     : "Unable to delete some files.\nThey will be deleted after game restart"
-                },
-                "msg_warn" : {
-                    "CHECKING_ID"      : "Unable to check player ID",
-                    "LIC_INVALID"      : "Invalid license key",
-                    "ID_NOT_FOUND"     : "ID was not found",
-                    "USER_NOT_FOUND"   : "You are not subscribed to Autoupdater.<br>You can subscribe it on \"https://pavel3333.ru/trajectorymod/lk\"",
-                    "TIME_EXPIRED"     : "Autoupdater subscription has expired.<br >You can renew the subscription on \"https://pavel3333.ru/trajectorymod/lk\"",
-                    "MOD_NOT_FOUND"    : "Mod was not found"
-                },
-                "titles" : {
-                    "main" : Constants.MOD_NAME,
-                    "procStart" : {
-                        "GET_MODS_LIST" : "Getting mods list...",
-                        "GET_DEPS"      : "Getting dependicies list...",
-                        "DEL_FILES"     : "Deleting old files...",
-                        "GET_FILES"     : "Getting files..."
-                    },
-                    "procDone"  : {
-                        "GET_MODS_LIST" : "Getting mods list done",
-                        "GET_DEPS"      : "Getting dependicies list done",
-                        "DEL_FILES"     : "Deleting old files done",
-                        "GET_FILES"     : "Getting files done"
-                    }
-                },
-                "times_ru" : [
-                    [
-                        "months",
-                        "days",
-                        "hours",
-                        "minutes"
-                    ],
-                    [
-                        "month",
-                        "day",
-                        "hour",
-                        "minute"
-                    ],
-                    [
-                        "month",
-                        "day",
-                        "hour",
-                        "minute"
-                    ]
+                [
+                    "month",
+                    "day",
+                    "hour",
+                    "minute"
                 ],
-                "times_en" : [
+                [
                     "month",
                     "day",
                     "hour",
                     "minute"
                 ]
-            }
+            ],
+            "times_en" : [
+                "month",
+                "day",
+                "hour",
+                "minute"
+            ]
         }
         
-        translations = getJSON(GUIPaths.TRANSLATION_PATH, self.translations)
+        translation = getJSON(GUIPaths.TRANSLATION_PATH%(AUTH_REALM.lower()), self.translation)
         
-        if not translations:
+        if not translation:
             g_AUShared.setErr(ErrorCode.index('TRANSLATIONS'))
             return
         else:
-            self.translations = translations
-        
-        self.translation = self.translations.get(AUTH_REALM, self.translations['EU'])
+            self.translation = translation
     
     def getMsg(self, key):
         return self.translation['msg'][key]

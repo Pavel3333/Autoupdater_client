@@ -4,9 +4,11 @@ __all__ = ('SimpleErr', 'FormatErr', 'AllErr', 'GUIPaths')
 
 SimpleErr = {
     ErrorCode.index('TRANSLATIONS'),
+    ErrorCode.index('CONFIG'),
     ErrorCode.index('CHECKING_ID'),
     ErrorCode.index('FILES_NOT_FOUND'),
     ErrorCode.index('LIC_INVALID'),
+    ErrorCode.index('CONNECT'),
     ErrorCode.index('RESP_TOO_SMALL'),
     ErrorCode.index('RESP_SIZE_INVALID'),
     ErrorCode.index('READING_MODS'),
@@ -28,5 +30,5 @@ AllErr = SimpleErr | FormatErr
 class GUIPaths:
     GUI_DIR = Directory['MOD_DIR'] + 'GUI/'
     
-    #ICON_PATH        = GUI_DIR + 'winicon.ico'
-    TRANSLATION_PATH = GUI_DIR + 'i18n.json'
+    #ICON_PATH       = GUI_DIR + 'winicon.ico'
+    TRANSLATION_PATH = GUI_DIR + '%s.json'
