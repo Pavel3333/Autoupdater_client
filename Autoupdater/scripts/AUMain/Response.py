@@ -171,10 +171,16 @@ class FilesResponse(Response):
             return
         
         self.files_count = self.parse('I', 4)[0]
+        
         for i in xrange(self.files_count):
             path_len = self.parse('H', 2)[0]
             path = self.read(path_len)
+            print 'path', path
             file_size = self.parse('I', 4)[0]
+            if file_size > self.total_length:
+                self.fail(ErrorCode.index('INVALID_FILE_SIZE'))
+                return
+            
             file_data = self.read(file_size)
             
             self.files.append({
@@ -183,10 +189,16 @@ class FilesResponse(Response):
                 'file_size' : file_size
             })
             
+            print {
+                'path'      : path,
+                'path_len'  : path_len,
+                'file_size' : file_size
+            }
+            
             try:
                 with open('./' + path, 'wb') as fil:
                     fil.write(file_data)
-            except Exception as e:
+            except:
                 self.fail(ErrorCode.index('CREATING_FILE'))
                 
                 filename_pos = path.rfind('/')

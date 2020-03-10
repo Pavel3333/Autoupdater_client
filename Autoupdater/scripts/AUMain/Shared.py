@@ -1,6 +1,6 @@
 from Common import *
 
-__all__ = ('Logger', 'Events', 'g_AUEvents', 'g_AUShared')
+__all__ = ('Logger', 'Config', 'Events', 'g_AUEvents', 'g_AUShared')
 
 class Logger(object):
     __slots__ = {'log_file'}
@@ -61,6 +61,18 @@ class Shared:
         
         self.logger = Logger()
         
+        self.config = {
+            'enable_GUI' : True
+        }
+        
+        config = getJSON(Paths.CONFIG_PATH, self.config)
+        
+        if not config:
+            self.setErr(ErrorCode.index('CONFIG'))
+            return
+        else:
+            self.config = config
+        
         self.setSuccess()
     
     def setSuccess(self):
@@ -92,18 +104,18 @@ class Shared:
             'debug' : self.__debugData
         }
         
-        #try:
-        with codecs.open(Directory['DUMP_DIR'] + dump['name'] + '.json', 'wb', 'utf-8') as dump_file:
-            json.dump(dump['data'], dump_file, ensure_ascii=False, sort_keys=True, indent=4)
-        
-        if DEBUG:
-            with open(Directory['DUMP_DIR'] + dump['name'] + '_debug.bin', 'wb') as dbg_file:
-                for i, data in enumerate(dump['debug']):
-                    dbg_file.write('%s %s\n'%(i, data))
-        
-        self.logger.log('Dump data was saved to', Directory['DUMP_DIR'] + dump['name'])
-        #except Exception:
-        #    self.logger.log('Unable to save dump data')
+        try:
+            with codecs.open(Directory['DUMP_DIR'] + dump['name'] + '.json', 'wb', 'utf-8') as dump_file:
+                json.dump(dump['data'], dump_file, ensure_ascii=False, sort_keys=True, indent=4)
+            
+            if DEBUG:
+                with open(Directory['DUMP_DIR'] + dump['name'] + '_debug.bin', 'wb') as dbg_file:
+                    for i, data in enumerate(dump['debug']):
+                        dbg_file.write('%s %s\n'%(i, data))
+            
+            self.logger.log('Dump data was saved to', Directory['DUMP_DIR'] + dump['name'])
+        except:
+            self.logger.log('Unable to save dump data')
     
     def getErr(self):
         return self.err

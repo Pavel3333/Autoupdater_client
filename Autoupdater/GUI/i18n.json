@@ -35,6 +35,7 @@
             "GETTING_DEPS": "An error occured while getting dependencies list. Error code %s", 
             "GETTING_FILES": "An error occured while getting files. Error code %s", 
             "GETTING_MODS": "An error occured while getting mod list. Error code %s", 
+            "INVALID_FILE_SIZE": "Got invalid file size", 
             "LIC_INVALID": "License key is invalid", 
             "READING_DEPS": "An error occured while reading dependencies list", 
             "READING_MODS": "An error occured while reading mod list", 

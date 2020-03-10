@@ -78,22 +78,24 @@ class Shared:
                 },
                 "msg_err" : {
                     "TRANSLATIONS"      : "An error occured while loading autoupdater translations.\nPlease redownload the autoupdater",
+                    "CONFIG"            : "An error occured while loading autoupdater config.\nPlease redownload the autoupdater",
                     "CHECKING_ID"       : "An error occured while checking player ID",
-                    "FILES_NOT_FOUND"        : "An error occured while loading autoupdater files.\nPlease redownload the autoupdater",
-                    "LIC_INVALID"            : "License key is invalid",
-                    "RESP_TOO_SMALL"         : "An error occured: getted empty response",
-                    "RESP_SIZE_INVALID"      : "An error occured: getted invalid response",
+                    "FILES_NOT_FOUND"   : "An error occured while loading autoupdater files.\nPlease redownload the autoupdater",
+                    "LIC_INVALID"       : "License key is invalid",
+                    "RESP_TOO_SMALL"    : "An error occured: getted empty response",
+                    "RESP_SIZE_INVALID" : "An error occured: getted invalid response",
                     "GETTING_MODS"      : "An error occured while getting mod list. Error code %s",
                     "READING_MODS"      : "An error occured while reading mod list",
                     "GETTING_DEPS"      : "An error occured while getting dependencies list. Error code %s",
                     "READING_DEPS"      : "An error occured while reading dependencies list",
+                    "INVALID_FILE_SIZE" : "Got invalid file size",
                     "GETTING_FILES"     : "An error occured while getting files. Error code %s",
                     "CREATING_FILE"     : "Unable to update some files.\nThey will be updated after game restart",
                     "DECODE_MOD_FIELDS" : "Getted incorrect mod data",
                     "DELETING_FILE"     : "Unable to delete some files.\nThey will be deleted after game restart"
                 },
                 "msg_warn" : {
-                    "CHECKING_ID" : "Unable to check player ID",
+                    "CHECKING_ID"      : "Unable to check player ID",
                     "LIC_INVALID"      : "Invalid license key",
                     "ID_NOT_FOUND"     : "ID was not found",
                     "USER_NOT_FOUND"   : "You are not subscribed to Autoupdater.<br>You can subscribe it on \"https://pavel3333.ru/trajectorymod/lk\"",
@@ -143,36 +145,16 @@ class Shared:
                 ]
             }
         }
-
-        translations = {}
-        #try:
-        if exists(GUIPaths.TRANSLATION_PATH):
-            with open(GUIPaths.TRANSLATION_PATH, 'r') as fil:
-                translations = json.loads(fil.read())
-        else:
-            with open(GUIPaths.TRANSLATION_PATH, 'w') as fil:
-                fil.write(json.dumps(self.translations, sort_keys=True, indent=4))
-            translations = self.translations
         
-        if all(self.checkSeqs(self.translations[key], translations.get(key, {})) for key in self.translations):
+        translations = getJSON(GUIPaths.TRANSLATION_PATH, self.translations)
+        
+        if not translations:
+            g_AUShared.setErr(ErrorCode.index('TRANSLATIONS'))
+            return
+        else:
             self.translations = translations
-        else:
-            with open(GUIPaths.TRANSLATION_PATH, 'w') as fil:
-                fil.write(json.dumps(self.translations, sort_keys=True, indent=4))
-        #except Exception:
-        #    g_AUShared.setErr(ErrorCode.index('TRANSLATIONS'))
-
-        self.translation = self.translations.get(AUTH_REALM, self.translations['EU'])
-    
-    def checkSeqs(self, seq1, seq2): # Check if dic1 contains keys of dic2
-        if not isinstance(seq1, type(seq2)):
-            return False
         
-        if isinstance(seq1, dict):
-            return all(key in seq2 and self.checkSeqs(seq1[key], seq2[key]) for key in seq1)
-        elif isinstance(seq1, list):
-            return len(seq1) == len(seq2) and all(self.checkSeqs(seq1[i], seq2[i]) for i in xrange(len(seq1)))
-        return True
+        self.translation = self.translations.get(AUTH_REALM, self.translations['EU'])
     
     def getMsg(self, key):
         return self.translation['msg'][key]

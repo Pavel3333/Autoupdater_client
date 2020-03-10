@@ -1,4 +1,4 @@
-__all__ = ('LangID', 'AUTH_REALM', 'DEBUG', 'ErrorCode', 'WarningCode', 'ResponseType', 'DataUnits', 'StatusType', 'ProgressType', 'getKey', 'Constants', 'Directory', 'Paths', 'getLevels', 'Event', 'DeleteExclude', 'Mod')
+__all__ = ('LangID', 'AUTH_REALM', 'DEBUG', 'ErrorCode', 'WarningCode', 'ResponseType', 'DataUnits', 'StatusType', 'ProgressType', 'getKey', 'getJSON', 'checkSeqs', 'Constants', 'Directory', 'Paths', 'getLevels', 'Event', 'DeleteExclude', 'Mod')
 
 LangID = (
     'RU',
@@ -18,20 +18,22 @@ DEBUG = True
 ErrorCode = (
     'SUCCESS',           # 0
     'TRANSLATIONS',      # 1
-    'CHECKING_ID',       # 2
-    'FILES_NOT_FOUND',   # 3
-    'LIC_INVALID',       # 4
-    'RESP_TOO_SMALL',    # 5
-    'RESP_SIZE_INVALID', # 6
-    'GETTING_MODS',      # 7
-    'READING_MODS',      # 8
-    'GETTING_DEPS',      # 9
-    'READING_DEPS',      # 10
-    'GETTING_FILES',     # 11
-    'CREATING_FILE',     # 12
-    'GET_MOD_FIELDS',    # 13
-    'DECODE_MOD_FIELDS', # 14
-    'DELETING_FILE'      # 15
+    'CONFIG',            # 2
+    'CHECKING_ID',       # 3
+    'FILES_NOT_FOUND',   # 4
+    'LIC_INVALID',       # 5
+    'RESP_TOO_SMALL',    # 6
+    'RESP_SIZE_INVALID', # 7
+    'GETTING_MODS',      # 8
+    'READING_MODS',      # 9
+    'GETTING_DEPS',      # 10
+    'READING_DEPS',      # 11
+    'GETTING_FILES',     # 12
+    'INVALID_FILE_SIZE', # 13
+    'CREATING_FILE',     # 14
+    'GET_MOD_FIELDS',    # 15
+    'DECODE_MOD_FIELDS', # 16
+    'DELETING_FILE'      # 17
 )
 
 WarningCode = {
@@ -40,7 +42,7 @@ WarningCode = {
     'ID_NOT_FOUND'   : 11,
     'USER_NOT_FOUND' : 12,
     'TIME_EXPIRED'   : 13,
-    'MOD_NOT_FOUND'  : 19
+    'MOD_NOT_FOUND'  : 20
 }
 
 ResponseType = (
@@ -79,6 +81,38 @@ def getKey(err, codes={}):
                 return key
     raise KeyError('Error %s was not found'%(err))
 
+def getJSON(path, pattern):
+    try:
+        raw = {}
+        
+        if exists(path):
+            with open(path, 'r') as fil:
+                raw = json.loads(fil.read())
+        else:
+            with open(path, 'w') as fil:
+                fil.write(json.dumps(pattern, sort_keys=True, indent=4))
+            raw = pattern
+        
+        if all(checkSeqs(pattern[key], raw.get(key, {})) for key in pattern):
+            return raw
+        else:
+            with open(path, 'w') as fil:
+                fil.write(json.dumps(pattern, sort_keys=True, indent=4))
+            return pattern
+    except:
+        return False
+
+def checkSeqs(self, seq1, seq2): # Check if dic1 contains keys of dic2
+    if not isinstance(seq1, type(seq2)):
+        return False
+    
+    if isinstance(seq1, dict):
+        return all(key in seq2 and checkSeqs(seq1[key], seq2[key]) for key in seq1)
+    elif isinstance(seq1, list):
+        return len(seq1) == len(seq2) and all(checkSeqs(seq1[i], seq2[i]) for i in xrange(len(seq1)))
+    return True
+    
+
 class Constants:
     MOD_NAME = 'Autoupdater'
     MOD_ID   = 'com.pavel3333.' + MOD_NAME + '.Helper'
@@ -101,6 +135,7 @@ Directory.update({
 class Paths:
     LIC_PATH        = Directory['MOD_DIR'] + Constants.MOD_NAME.upper() + '_%s.lic'
     EXE_HELPER_PATH = Directory['X86_DIR'] + Constants.MOD_ID + '.exe'
+    CONFIG_PATH     = Directory['MOD_DIR'] + 'config.json'
     DELETED_PATH    = Directory['MOD_DIR'] + 'delete.txt'
     LOG_PATH        = Directory['MOD_DIR'] + 'log.txt'
 
@@ -183,7 +218,7 @@ class Mod(object):
             self.hashes = json.loads(mod['hashes'])
             if 'dependencies' in mod:
                 self.dependencies = json.loads(mod['dependencies'])
-        except Exception:
+        except:
             self.failed = ErrorCode.index('DECODE_MOD_FIELDS')
     
     def parseTree(self, path, curr_dic):
@@ -196,9 +231,11 @@ class Mod(object):
                     if self.enabled:
                         self.needToUpdate['ID'].add(ID)
                         self.needToUpdate['file'].add(subpath)
+                        print 'update file', subpath, '(not exists)'
                     continue
                 elif not self.enabled:
                     self.needToDelete['file'].add(subpath)
+                    print 'delete', subpath
                     continue
                 
                 hash_ = md5(open(subpath, 'rb').read()).hexdigest()
@@ -206,6 +243,7 @@ class Mod(object):
                 if hash_ != self.hashes[ID]:
                     self.needToUpdate['ID'].add(ID)
                     self.needToUpdate['file'].add(subpath)
+                    print 'update file', subpath ,'(hash)'
             else:
                 if self.enabled and not exists(subpath):
                     makedirs(subpath)
@@ -213,6 +251,7 @@ class Mod(object):
                 self.parseTree(subpath + '/', curr_dic[ID])
                 
                 if not self.enabled:
+                    print 'del dir', subpath
                     self.needToDelete['dir'].add(subpath)
     
     def slots(self):

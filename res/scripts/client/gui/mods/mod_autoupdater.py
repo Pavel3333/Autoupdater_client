@@ -58,17 +58,17 @@ class Autoupdater:
         
         if g_AUShared.getErr() != ErrorCode.index('SUCCESS'): return
          
-        #try:
-        from AUGUI.Window import g_WindowCommon
-        
-        g_AUShared.windowCommon = g_WindowCommon
-        
-        window = g_WindowCommon.createWindow()
-        if window is not None:
-            window.onWindowPopulate += self.getModsList
-            return
-        #except Exception:
-        #    g_AUShared.logger.log('Unable to load GUI module')
+        try:
+            from AUGUI.Window import g_WindowCommon
+            
+            g_AUShared.windowCommon = g_WindowCommon
+            
+            window = g_WindowCommon.createWindow()
+            if window is not None:
+                window.onWindowPopulate += self.getModsList
+                return
+        except Exception:
+            g_AUShared.logger.log('Unable to load GUI module')
         
         self.getModsList()
     
@@ -80,6 +80,7 @@ class Autoupdater:
         req_header = RequestHeader(self.ID, self.lic, respType)
         req        = Request(req_header)
         req.parse('B', self.langID)
+        req.parse('B', int(g_AUShared.config['enable_GUI']))
         
         g_AUEvents.onModsProcessingStart()
         
@@ -232,6 +233,8 @@ class Autoupdater:
         updated = 0
         for modID in mods:
             mod = mods[modID]
+            if not mod.needToUpdate['ID']:
+                continue
             
             req_header = RequestHeader(self.ID, self.lic, ResponseType.index('GET_FILES'))
             req = Request(req_header)
@@ -239,8 +242,8 @@ class Autoupdater:
             req.parse('I', len(mod.needToUpdate['ID']))
             for updID in mod.needToUpdate['ID']:
                 req.parse('I', int(updID))
-            
             g_AUEvents.onModFilesProcessingStart(updated, mod.name, isDependency)
+            
             resp = FilesResponse(req.get_data(), req.get_type())
             
             g_AUEvents.onModFilesProcessingDone(mod, updated, mods_count, resp.failed, resp.code)
