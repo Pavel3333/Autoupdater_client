@@ -290,7 +290,8 @@ class Autoupdater:
         func(*args)
     
 try:
-    sys.path.insert(0, './Autoupdater/scripts/')
+    sys.path.insert(0, 'Autoupdater/scripts/')
+    print 'sys.path', sys.path
     from AUMain import *
     
     if not BattleReplay.isPlaying():
