@@ -1,6 +1,7 @@
-from constants import AUTH_REALM
+import xfw_loader.python as loader
+AUMain = loader.get_mod_module('com.pavel3333.Autoupdater')
 
-from AUMain import * # TODO
+from constants import AUTH_REALM
 
 from common import *
 
@@ -103,7 +104,7 @@ class Shared:
                 "MOD_NOT_FOUND"    : "Mod was not found"
             },
             "titles" : {
-                "main" : Constants.MOD_NAME,
+                "main" : AUMain.Constants.MOD_NAME,
                 "procStart" : {
                     "GET_MODS_LIST" : "Getting mods list...",
                     "GET_DEPS"      : "Getting dependicies list...",
@@ -145,10 +146,10 @@ class Shared:
             ]
         }
         
-        translation = getJSON(GUIPaths.TRANSLATION_PATH%(AUTH_REALM.lower()), self.translation)
+        translation = AUMain.getJSON(GUIPaths.TRANSLATION_PATH%(AUMain.AUTH_REALM.lower()), self.translation)
         
         if not translation:
-            g_AUShared.setErr(ErrorCode.index('TRANSLATIONS'))
+            AUMain.g_AUShared.fail('TRANSLATIONS')
             return
         else:
             self.translation = translation
@@ -157,55 +158,59 @@ class Shared:
         return self.translation['msg'][key]
     
     def getErrMsg(self, err):
-        if isinstance(err, int) and err in xrange(len(ErrorCode)):
-            err = ErrorCode[err]
+        if isinstance(err, int) and err in xrange(len(AUMain.ErrorCode)):
+            err = AUMain.ErrorCode[err]
         return self.translation['msg_err'][err]
     
     def getWarnMsg(self, err):
-        return self.translation['msg_warn'][getKey(err, WarningCode)]
+        return self.translation['msg_warn'][getKey(err, AUMain.WarningCode)]
     
-    def getTitle(self, key, err=None):
+    def getTitle(self, key, respType=None):
         result = self.translation['titles'][key]
         
         if isinstance(result, dict):
-            if err is not None:
-                if isinstance(err, int) and err in xrange(len(ResponseType)):
-                    err = ResponseType[err]
-                return result[err]
-            raise KeyError('getTitle: err is None')
+            if respType is not None:
+                if isinstance(respType, int) and respType in xrange(len(AUMain.ResponseType)):
+                    respType = AUMain.ResponseType[err]
+                return result[respType]
+            raise KeyError('getTitle: respType is None')
         return result
     
     def handleErr(self, respType, err, code):
-        if respType in {
-            ResponseType.index('GET_MODS_LIST'),
-            ResponseType.index('GET_DEPS')
-            }:
-            if err == ErrorCode.index('SUCCESS'):
-                return
-            
-            
-            if code in WarningCode.values():
-                msg = g_AUGUIShared.getWarnMsg(code)
-                if err == ErrorCode.index('GETTING_MODS'):
-                    code_key = {
-                        WarningCode['USER_NOT_FOUND'] : 'subscribe',
-                        WarningCode['TIME_EXPIRED']   : 'renew'
-                    }
-                    
-                    if code in code_key:
-                        key = code_key[code]
-                        
-                        self.createDialog(title=g_AUGUIShared.getMsg('warn'), message=msg, submit=g_AUGUIShared.getMsg(key), close=g_AUGUIShared.getMsg('close'), url='https://pavel3333.ru/trajectorymod/lk')
-            else:
-                msg = g_AUGUIShared.getMsg('unexpected')%(err, code)
+        if respType not in map(AUMain.ResponseType.index, {
+            'GET_MODS_LIST',
+            'GET_DEPS'
+            }):
+            return
+        
+        if isinstance(err, int) and err in xrange(len(AUMain.ErrorCode)):
+            err = AUMain.ErrorCode[err]
+        
+        if err == 'SUCCESS':
+            return
+        
+        if code in AUMain.WarningCode.values():
+            msg = self.getWarnMsg(code)
+            if err == 'GETTING_MODS':
+                code_key = {
+                    'USER_NOT_FOUND' : 'subscribe',
+                    'TIME_EXPIRED'   : 'renew'
+                }
                 
-            err_status = {
-                ErrorCode.index('GETTING_MODS') : StatusType.index('MODS_LIST'),
-                ErrorCode.index('GETTING_DEPS') : StatusType.index('DEPS')
-            }
+                if code in map(AUMain.WarningCode.__getitem__, code_key):
+                    key = code_key[code]
+                    
+                    self.createDialog(title=self.getMsg('warn'), message=msg, submit=self.getMsg(key), close=self.getMsg('close'), url='https://pavel3333.ru/trajectorymod/lk')
+        else:
+            msg = self.getMsg('unexpected')%(err, code)
             
-            if self.window:
-                window.setStatus(err_status[err], htmlMsg(g_AUGUIShared.getMsg('warn') + ' ' + msg, color='ff0000'))
+        err_status = {
+            'GETTING_MODS' : 'MODS_LIST',
+            'GETTING_DEPS' : 'DEPS'
+        }
+        
+        if self.window and err in err_status:
+            window.setStatus(err_status[err], htmlMsg(self.getMsg('warn') + ' ' + msg, color='ff0000'))
     
     def handleServerErr(self, err, code):
         if code in AllErr:
@@ -218,7 +223,7 @@ class Shared:
     def show_format_date(self, case, data):
         if data:
             times = ''
-            if AUTH_REALM == 'RU':
+            if AUMain.AUTH_REALM == 'RU':
                 times = cases_by_postfix(case, data, self.translation['times_ru'])
             else:
                 times = self.translation['times_en'][case]
@@ -230,8 +235,8 @@ class Shared:
     
     def exp_time(self, exp):
         from time import time
+        
         dt = exp - int(time());
-
         if dt < 0: return ''
         
         months =  dt            // 2592000

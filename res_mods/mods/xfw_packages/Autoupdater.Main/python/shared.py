@@ -46,7 +46,7 @@ class Events:
         self.onModFilesProcessingDone  = Event()
         self.onFilesProcessingDone     = Event()
 
-class Shared:
+class Shared(Error):
     def __init__(self):
         self.mods         = {}
         self.dependencies = {}
@@ -68,31 +68,23 @@ class Shared:
         config = getJSON(Paths.CONFIG_PATH, self.config)
         
         if not config:
-            self.setErr(ErrorCode.index('CONFIG'))
+            self.fail('CONFIG')
             return
         else:
             self.config = config
         
-        self.setSuccess()
-    
-    def setSuccess(self):
-        self.err = ErrorCode.index('SUCCESS')
+    def fail(self, err, extraCode=0):
+        super(self, Shared).fail(err, extraCode)
         
-    def setErr(self, errCode, extraCode=0):
-        if errCode == ErrorCode.index('SUCCESS'):
-            self.err = ErrorCode.index('SUCCESS')
-            return
-        
-        self.err = (errCode, extraCode)
+        if isinstance(err, int) and err in xrange(len(ErrorCode)):
+            err = ErrorCode[err]
         
         import os
         import codecs
         import json
         from time import strftime
         
-        if errCode in xrange(len(ErrorCode)):
-            errCode = ErrorCode[errCode]
-        self.logger.log('Error %s (%s)'%(errCode, extraCode))
+        self.logger.log('Error %s (%s)'%(err, extraCode))
         
         dump = {
             'name' : 'dump ' + strftime('%d.%m.%Y %H_%M_%S'),
@@ -116,10 +108,7 @@ class Shared:
             self.logger.log('Dump data was saved to', Directory['DUMP_DIR'] + dump['name'])
         except:
             self.logger.log('Unable to save dump data')
-    
-    def getErr(self):
-        return self.err
-    
+     
     def handleErr(self, *args, **kw):
         if self.windowCommon is not None:
             self.windowCommon.handleErr(*args, **kw)

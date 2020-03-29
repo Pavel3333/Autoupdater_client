@@ -10,19 +10,18 @@ from struct  import unpack
 
 __all__ = ('Response', 'ModsListResponse', 'DepsResponse', 'FilesResponse')
 
-class Response(StreamPacket):
+class Response(Error, StreamPacket):
     __slots__ = {'failed', 'code', 'type', 'total_length'}
     
     def __init__(self, urldata, resp_type):
         super(Response, self).__init__(Constants.AUTOUPDATER_URL, urldata)
         
-        self.failed       = ErrorCode.index('SUCCESS')
         self.code         = 0
         self.type         = resp_type
         self.total_length = 0
         
         if self.conn is None:
-            self.fail(ErrorCode.index('CONNECT'))
+            self.fail('CONNECT')
             return
         
         types_events = {
@@ -40,11 +39,8 @@ class Response(StreamPacket):
         self.code         = self.parse('B', 1)[0]
         
         if self.total_length < 3:
-            self.fail(ErrorCode.index('RESP_TOO_SMALL'))
+            self.fail('RESP_TOO_SMALL')
             return
-    
-    def fail(self, code):
-        self.failed = code
     
     def getChunkSize(self):
         return len(self.chunk) - self.offset
@@ -119,14 +115,14 @@ class ModsListResponse(Response):
     
     def init(self):
         if self.code != ErrorCode.index('SUCCESS'):
-            self.fail(ErrorCode.index('GETTING_MODS'))
+            self.fail('GETTING_MODS')
             return
         
         try:
             self.time_exp = self.parse('I', 4)[0]
             self.mods = json.loads(self.read())
         except ValueError:
-            self.fail(ErrorCode.index('READING_MODS'))
+            self.fail('READING_MODS')
     
     def slots(self):
         return super(ModsListResponse, self).slots() | self.__slots__
@@ -145,13 +141,13 @@ class DepsResponse(Response):
     
     def init(self):
         if self.code != ErrorCode.index('SUCCESS'):
-            self.fail(ErrorCode.index('GETTING_DEPS'))
+            self.fail('GETTING_DEPS')
             return
         
         try:
             self.dependencies = json.loads(self.read())
         except ValueError:
-            self.fail(ErrorCode.index('READING_DEPS'))
+            self.fail('READING_DEPS')
     
     def slots(self):
         return super(DepsResponse, self).slots() | self.__slots__
@@ -171,7 +167,7 @@ class FilesResponse(Response):
     
     def init(self):
         if self.code != ErrorCode.index('SUCCESS'):
-            self.fail(ErrorCode.index('GETTING_FILES'))
+            self.fail('GETTING_FILES')
             return
         
         self.files_count = self.parse('I', 4)[0]
@@ -182,7 +178,7 @@ class FilesResponse(Response):
             file_size = self.parse('I', 4)[0]
             file_data = ''
             if file_size > self.total_length:
-                self.fail(ErrorCode.index('INVALID_FILE_SIZE'))
+                self.fail('INVALID_FILE_SIZE')
                 return
             elif file_size > 0:
                 file_data = file_data = self.read(file_size)
@@ -203,7 +199,7 @@ class FilesResponse(Response):
                 with open('./' + path, 'wb') as fil:
                     fil.write(file_data)
             except:
-                self.fail(ErrorCode.index('CREATING_FILE'))
+                self.fail('CREATING_FILE')
                 
                 filename_pos = path.rfind('/')
                 trimmed_path = path if filename_pos == -1 else path[:filename_pos + 1]

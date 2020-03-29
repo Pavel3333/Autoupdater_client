@@ -1,4 +1,4 @@
-__all__ = ('LangID', 'AUTH_REALM', 'DEBUG', 'ErrorCode', 'WarningCode', 'ResponseType', 'DataUnits', 'StatusType', 'ProgressType', 'getKey', 'getJSON', 'checkSeqs', 'Constants', 'Directory', 'Paths', 'getLevels', 'Event', 'DeleteExclude', 'Mod')
+__all__ = ('LangID', 'AUTH_REALM', 'getLangID', 'DEBUG', 'ErrorCode', 'WarningCode', 'ResponseType', 'DataUnits', 'StatusType', 'ProgressType', 'Error', 'getKey', 'getJSON', 'checkSeqs', 'Constants', 'Directory', 'Paths', 'getLevels', 'Event', 'DeleteExclude', 'Mod')
 
 LangID = (
     'RU',
@@ -12,6 +12,9 @@ try:
     from constants import AUTH_REALM
 except ImportError:
     pass
+
+def getLangID():
+    return LangID.index(AUTH_REALM) if AUTH_REALM in LangID else LangID.index('EU')
 
 DEBUG = True
 
@@ -73,6 +76,25 @@ ProgressType = (
     'FILES_TOTAL'     # 2
 )
 
+class Error(object):
+    def __init__(self):
+        self.success()
+    
+    def check(self):
+        return self.failed == ErrorCode.index('SUCCESS')
+
+    def success(self):
+        self.fail('SUCCESS')
+    
+    def fail(self, err, extraCode=0):
+        if isinstance(err, str):
+            err = ErrorCode.index(err)
+        
+        if err == ErrorCode.index('SUCCESS'):
+            self.failed = err
+        else:
+            self.failed = (err, extraCode)
+
 def getKey(err, codes={}):
     if isinstance(err, str):
         return err
@@ -121,7 +143,7 @@ def checkSeqs(seq1, seq2): # Check if dic1 contains keys of dic2
 
 class Constants:
     MOD_NAME = 'Autoupdater'
-    MOD_ID   = 'com.pavel3333.' + MOD_NAME + '.Helper'
+    MOD_ID   = 'com.pavel3333.' + MOD_NAME
 
     AUTOUPDATER_URL = 'http://api.pavel3333.ru/autoupdate.php'
 
@@ -139,7 +161,7 @@ Directory.update({
 
 class Paths:
     LIC_PATH        = Directory['MOD_DIR'] + Constants.MOD_NAME.upper() + '_%s.lic'
-    EXE_HELPER_PATH = Directory['X86_DIR'] + Constants.MOD_ID + '.exe'
+    EXE_HELPER_PATH = Directory['X86_DIR'] + Constants.MOD_ID + '.Helper.exe'
     CONFIG_PATH     = Directory['MOD_DIR'] + 'config.json'
     DELETED_PATH    = Directory['MOD_DIR'] + 'delete.txt'
     LOG_PATH        = Directory['MOD_DIR'] + 'log.txt'
@@ -191,12 +213,10 @@ from os      import makedirs
 from os.path import exists
 from hashlib import md5
 
-class Mod(object):
+class Mod(Error):
     __slots__ = { 'failed', 'needToUpdate', 'needToDelete', 'id', 'enabled', 'name', 'description', 'version', 'build', 'tree', 'names', 'hashes', 'dependencies' }
     
     def __init__(self, mod):
-        self.failed = ErrorCode.index('SUCCESS')
-        
         self.needToUpdate = { # Updating only files
             'ID'   : set(),
             'file' : set()
@@ -214,7 +234,7 @@ class Mod(object):
             self.version     = mod['version']
             self.build       = mod['build']
         except KeyError:
-            self.failed = ErrorCode.index('GET_MOD_FIELDS')
+            self.fail('GET_MOD_FIELDS')
             return
         
         try:
@@ -224,7 +244,7 @@ class Mod(object):
             if 'dependencies' in mod:
                 self.dependencies = json.loads(mod['dependencies'])
         except:
-            self.failed = ErrorCode.index('DECODE_MOD_FIELDS')
+            self.fail('DECODE_MOD_FIELDS')
     
     def parseTree(self, path, curr_dic):
         for ID in curr_dic:
