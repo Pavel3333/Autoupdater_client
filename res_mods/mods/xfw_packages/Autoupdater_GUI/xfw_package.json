@@ -1,0 +1,20 @@
+{
+    "id": "com.pavel3333.Autoupdater.GUI",
+    "name": "Autoupdater GUI module",
+    "description": "Shows Autoupdater GUI in the hangar",
+
+    "version": "1.0.0.0",
+    "dependencies": [
+        "com.pavel3333.Autoupdater",
+        "com.modxvm.xfw.native"
+	],
+    
+    "url": "https://pavel3333.ru/autoupdater/",
+    "url_update": "https://pavel3333.ru/autoupdater/",
+    
+    "wot_version_min": "1.8.0.1",
+    "wot_version_exactmatch": false,
+    
+    "features": ["python", "native"],
+    "architecture": ["32bit"]
+}
