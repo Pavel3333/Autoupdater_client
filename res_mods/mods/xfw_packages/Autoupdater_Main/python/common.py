@@ -77,14 +77,11 @@ ProgressType = (
 )
 
 class Error(object):
-    def __init__(self):
-        self.success()
+    def __init__(self, *args):
+        self.failed = ErrorCode.index('SUCCESS')
     
     def check(self):
         return self.failed == ErrorCode.index('SUCCESS')
-
-    def success(self):
-        self.fail('SUCCESS')
     
     def fail(self, err, extraCode=0):
         if isinstance(err, str):
@@ -217,6 +214,8 @@ class Mod(Error):
     __slots__ = { 'failed', 'needToUpdate', 'needToDelete', 'id', 'enabled', 'name', 'description', 'version', 'build', 'tree', 'names', 'hashes', 'dependencies' }
     
     def __init__(self, mod):
+        super(Mod, self).__init__()
+    
         self.needToUpdate = { # Updating only files
             'ID'   : set(),
             'file' : set()

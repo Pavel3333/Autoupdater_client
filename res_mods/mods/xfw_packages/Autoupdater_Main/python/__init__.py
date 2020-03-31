@@ -1,3 +1,9 @@
+from common   import *
+from packet   import *
+from request  import *
+from response import *
+from shared   import *
+
 import BigWorld
 import BattleReplay
 
@@ -6,8 +12,8 @@ from PlayerEvents import g_playerEvents
 from helpers import dependency
 from skeletons.gui.shared.utils import IHangarSpace
 
+import traceback
 import json
-import sys
 
 from os      import listdir, makedirs, remove, rmdir
 from os.path import exists, isfile
@@ -16,7 +22,7 @@ class Autoupdater:
     hangarSpace = dependency.descriptor(IHangarSpace)
     
     def __init__(self):
-        for directory in AUMain.Directory.values():
+        for directory in Directory.values():
             if not exists(directory):
                 makedirs(directory)
 
@@ -24,7 +30,7 @@ class Autoupdater:
         self.ID  = 0
         self.lic = ''
         
-        self.langID = AUMain.getLangID()
+        self.langID = getLangID()
         
         self.unpackAfterFini = False
         self.deleteAfterFini = False
@@ -36,19 +42,19 @@ class Autoupdater:
         self.ID = ctx.get('databaseID', 0)
         
         if not self.ID:
-            AUMain.g_AUShared.fail('CHECKING_ID')
+            g_AUShared.fail('CHECKING_ID')
             return
             
-        lic_path = AUMain.Paths.LIC_PATH%(self.ID^0xb7f5cba9)
+        lic_path = Paths.LIC_PATH%(self.ID^0xb7f5cba9)
         if not exists(lic_path):
-            AUMain.g_AUShared.fail('FILES_NOT_FOUND')
+            g_AUShared.fail('FILES_NOT_FOUND')
             return
             
         with open(lic_path, 'rb') as lic_file:
             self.lic = lic_file.read()
 
-        if len(self.lic) != AUMain.Constants.LIC_LEN:
-            AUMain.g_AUShared.fail('LIC_INVALID')
+        if len(self.lic) != Constants.LIC_LEN:
+            g_AUShared.fail('LIC_INVALID')
             return
         
         self.hangarSpace.onHeroTankReady += self.start
@@ -56,48 +62,42 @@ class Autoupdater:
     def start(self, *args):
         self.hangarSpace.onHeroTankReady -= self.start
         
-        if not AUMain.g_AUShared.check(): return
+        if not g_AUShared.check(): return
         
-        if AUGUI is not None:
-            g_WindowCommon = AUGUI.g_WindowCommon
-            
-            AUMain.g_AUShared.windowCommon = g_WindowCommon
-            
-            window = g_WindowCommon.createWindow()
-            if window is not None:
-                window.onWindowPopulate += self.getModsList
+        if g_AUShared.windowCommon is not None:
+            if g_AUShared.windowCommon.createWindow(self.getModsList) is not None:
                 return
         
         self.getModsList()
     
     def getModsList(self):
-        if not AUMain.g_AUShared.check(): return
+        if not g_AUShared.check(): return
         
-        respType = AUMain.ResponseType.index('GET_MODS_LIST')
+        respType = ResponseType.index('GET_MODS_LIST')
         
-        req_header = AUMain.RequestHeader(self.ID, self.lic, respType)
-        req        = AUMain.Request(req_header)
+        req_header = RequestHeader(self.ID, self.lic, respType)
+        req        = Request(req_header)
         req.parse('B', self.langID)
-        req.parse('B', int(AUMain.g_AUShared.config['enable_GUI']))
+        req.parse('B', int(g_AUShared.config['enable_GUI']))
         
-        AUMain.g_AUEvents.onModsProcessingStart()
+        g_AUEvents.onModsProcessingStart()
         
-        resp = AUMain.ModsListResponse(req.get_data(), req.get_type())
+        resp = ModsListResponse(req.get_data(), req.get_type())
         if resp.failed:
-            AUMain.g_AUShared.fail(resp.failed, resp.code)
+            g_AUShared.fail(resp.failed, resp.code)
             return
         
         self.exp = resp.time_exp
         
-        AUMain.g_AUEvents.onModsProcessingDone(self.exp)
-        AUMain.g_AUShared.handleErr(respType, resp.failed, resp.code)
+        g_AUEvents.onModsProcessingDone(self.exp)
+        g_AUShared.handleErr(respType, resp.failed, resp.code)
         
         self.getDepsList(resp.mods)
     
     def getDepsList(self, mods):
-        if not AUMain.g_AUShared.check(): return
+        if not g_AUShared.check(): return
         
-        respType = AUMain.ResponseType.index('GET_DEPS')
+        respType = ResponseType.index('GET_DEPS')
         
         dependencies = {
             'enabled'  : set(),
@@ -111,9 +111,9 @@ class Autoupdater:
         }
         
         for modID in mods:
-            mod = AUMain.g_AUShared.mods[modID] = AUMain.Mod(mods[modID])
+            mod = g_AUShared.mods[modID] = Mod(mods[modID])
             if mod.failed:
-                AUMain.g_AUShared.fail(mod.failed, mod.code)
+                g_AUShared.fail(mod.failed, mod.code)
                 return
             mod.parseTree('./', mod.tree)
             
@@ -125,8 +125,8 @@ class Autoupdater:
         
         dependencies['disabled'] -= dependencies['enabled']
         
-        req_header = AUMain.RequestHeader(self.ID, self.lic, respType)
-        req        = AUMain.Request(req_header)
+        req_header = RequestHeader(self.ID, self.lic, respType)
+        req        = Request(req_header)
         req.parse('B', self.langID)
         req.parse('H', len(dependencies['enabled'] | dependencies['disabled']))
         for key in dependencies:
@@ -134,21 +134,21 @@ class Autoupdater:
                 req.parse('H', dependencyID)
                 req.parse('B', 1 if key == 'enabled' else 0)
         
-        AUMain.g_AUEvents.onDepsProcessingStart()
+        g_AUEvents.onDepsProcessingStart()
         
-        resp = AUMain.DepsResponse(req.get_data(), req.get_type())
+        resp = DepsResponse(req.get_data(), req.get_type())
         if resp.failed:
-            AUMain.g_AUShared.fail(resp.failed)
+            g_AUShared.fail(resp.failed)
             return
         
-        AUMain.g_AUEvents.onDepsProcessingDone()
-        AUMain.g_AUShared.handleErr(respType, resp.failed, resp.code)
+        g_AUEvents.onDepsProcessingDone()
+        g_AUShared.handleErr(respType, resp.failed, resp.code)
         
         deps = resp.dependencies
         for dependencyID in deps:
-            dependency = AUMain.g_AUShared.dependencies[dependencyID] = AUMain.Mod(deps[dependencyID])
+            dependency = g_AUShared.dependencies[dependencyID] = Mod(deps[dependencyID])
             if dependency.failed:
-                AUMain.g_AUShared.fail(dependency.failed)
+                g_AUShared.fail(dependency.failed)
                 return
             dependency.parseTree('./', dependency.tree)
             
@@ -167,8 +167,8 @@ class Autoupdater:
         
         deleted = self.delFiles(toDelete)
         
-        updated_deps = self.getFiles(AUMain.g_AUShared.dependencies, True)
-        updated_mods = self.getFiles(AUMain.g_AUShared.mods,         False)
+        updated_deps = self.getFiles(g_AUShared.dependencies, True)
+        updated_mods = self.getFiles(g_AUShared.mods,         False)
         
         updated = updated_mods + updated_deps
         
@@ -176,8 +176,8 @@ class Autoupdater:
         
         if self.deleteAfterFini:
             key = 'delete'
-            with open(AUMain.Paths.DELETED_PATH, 'wb') as fil:
-                for path in AUMain.g_AUShared.undeletedPaths:
+            with open(Paths.DELETED_PATH, 'wb') as fil:
+                for path in g_AUShared.undeletedPaths:
                     fil.write(path + '\n')
             self.hookFini()
         elif self.unpackAfterFini:
@@ -186,16 +186,16 @@ class Autoupdater:
         elif updated:
             key = 'update'
         
-        AUMain.g_AUShared.createDialogs(key, updated)
+        g_AUShared.createDialogs(key, updated)
     
     def delFiles(self, paths):
-        if not AUMain.g_AUShared.check(): return 0
+        if not g_AUShared.check(): return 0
         
         paths_count = len(paths['file']) + len(paths['dir'])
         
         undeletedPaths = []
         
-        AUMain.g_AUEvents.onDeletingStart(paths_count)
+        g_AUEvents.onDeletingStart(paths_count)
         
         deleted = 0
         for path in paths['file']:
@@ -204,8 +204,8 @@ class Autoupdater:
                     remove(path)
                     deleted += 1
                 except Exception:
-                    AUMain.g_AUShared.undeletedPaths.append(path)
-                    AUMain.g_AUShared.logger.log('Unable to delete file %s'%(path))
+                    g_AUShared.undeletedPaths.append(path)
+                    g_AUShared.logger.log('Unable to delete file %s'%(path))
             #else:
             #    g_AUShared.logger.log('File %s is not exists'%(path))
         
@@ -215,25 +215,25 @@ class Autoupdater:
                     rmdir(path)
                     deleted += 1
                 except Exception:
-                    AUMain.g_AUShared.undeletedPaths.append(path)
-                    AUMain.g_AUShared.logger.log('Unable to delete directory %s'%(path))
-                    AUMain.g_AUShared.fail('DELETING_FILE')
+                    g_AUShared.undeletedPaths.append(path)
+                    g_AUShared.logger.log('Unable to delete directory %s'%(path))
+                    g_AUShared.fail('DELETING_FILE')
                     break
             #else:
             #    g_AUShared.logger.log('Directory %s is not empty'%(path))
         
-        self.deleteAfterFini = bool(AUMain.g_AUShared.undeletedPaths)
+        self.deleteAfterFini = bool(g_AUShared.undeletedPaths)
         
-        AUMain.g_AUEvents.onDeletingDone(deleted, paths_count)
+        g_AUEvents.onDeletingDone(deleted, paths_count)
         
         return deleted
     
     def getFiles(self, mods, isDependency):
-        if not AUMain.g_AUShared.check(): return 0
+        if not g_AUShared.check(): return 0
         
         mods_count = len(filter(lambda mod: mod.needToUpdate['ID'], mods.values()))
         
-        AUMain.g_AUEvents.onFilesProcessingStart(mods_count)
+        g_AUEvents.onFilesProcessingStart(mods_count)
         
         updated = 0
         for modID in mods:
@@ -241,27 +241,27 @@ class Autoupdater:
             if not mod.needToUpdate['ID']:
                 continue
             
-            req_header = AUMain.RequestHeader(self.ID, self.lic, AUMain.ResponseType.index('GET_FILES'))
-            req = AUMain.Request(req_header)
+            req_header = RequestHeader(self.ID, self.lic, ResponseType.index('GET_FILES'))
+            req = Request(req_header)
             req.parse('H', int(modID))
             req.parse('I', len(mod.needToUpdate['ID']))
             for updID in mod.needToUpdate['ID']:
                 req.parse('I', int(updID))
-            AUMain.g_AUEvents.onModFilesProcessingStart(updated, mod.name, isDependency)
+            g_AUEvents.onModFilesProcessingStart(updated, mod.name, isDependency)
             
-            resp = AUMain.FilesResponse(req.get_data(), req.get_type())
+            resp = FilesResponse(req.get_data(), req.get_type())
             
-            AUMain.g_AUEvents.onModFilesProcessingDone(mod, updated, mods_count, resp.failed, resp.code)
+            g_AUEvents.onModFilesProcessingDone(mod, updated, mods_count, resp.failed, resp.code)
             
-            if resp.failed == AUMain.ErrorCode.index('SUCCESS'):
+            if resp.failed == ErrorCode.index('SUCCESS'):
                 updated += 1
-            elif resp.failed == AUMain.ErrorCode.index('CREATING_FILE'):
+            elif resp.failed == ErrorCode.index('CREATING_FILE'):
                 self.unpackAfterFini = True
             else:
-                AUMain.g_AUShared.fail(resp.failed, resp.code)
+                g_AUShared.fail(resp.failed, resp.code)
                 break
         
-        AUMain.g_AUEvents.onFilesProcessingDone(updated, mods_count)
+        g_AUEvents.onFilesProcessingDone(updated, mods_count)
         
         return updated
     
@@ -276,32 +276,16 @@ class Autoupdater:
             game.fini = lambda *args: self.onGameFini(_game__fini, *args)
             self.finiHooked = True
         except:
-            AUMain.g_AUShared.logger.log('Unable to hook fini')
+            g_AUShared.logger.log('Unable to hook fini')
     
     def onGameFini(self, func, *args):
         print 'starting helper process...'
         
         import subprocess
         DETACHED_PROCESS = 0x00000008
-        subprocess.Popen(AUMain.Paths.EXE_HELPER_PATH, creationflags=DETACHED_PROCESS) # shell=True, 
+        subprocess.Popen(Paths.EXE_HELPER_PATH, creationflags=DETACHED_PROCESS) # shell=True, 
         
         func(*args)
-    
-try:
-    import xfw_loader.python as loader
-except:
-    print '[CRITICAL ERROR] Autoupdater: Unable to get XFW Loader'
-    sys.exit()
-
-AUMain = loader.get_mod_module('com.pavel3333.Autoupdater')
-AUGUI  = loader.get_mod_module('com.pavel3333.Autoupdater.GUI')
-
-if AUMain is None:
-    print '[CRITICAL ERROR] Autoupdater: Unable to load mod files. Autoupdater will not loaded!'
-    sys.exit()
-
-if AUGUI is None:
-    print '[INFO] Autoupdater: Cannot find GUI module'
 
 if not BattleReplay.isPlaying():
     g_Autoupdater = Autoupdater()

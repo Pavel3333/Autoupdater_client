@@ -56,6 +56,7 @@ class AutoupdaterLobbyWindow(AbstractWindowView):
         super(AutoupdaterLobbyWindow, self).__init__()
         
         self.onWindowPopulate = Event()
+        
         AUMain.g_AUShared.window = self
     
     def _populate(self):
@@ -71,7 +72,7 @@ class AutoupdaterLobbyWindow(AbstractWindowView):
     def setTitle(self, title):
         if self.flashObject is not None:
             self.flashObject.as_setTitle(title)
-
+    
     def setExpTime(self, text):
         if self.flashObject is not None:
             self.flashObject.as_setExpTime(text)
@@ -174,8 +175,8 @@ class WindowCommon:
         AUMain.g_AUEvents.onModFilesDataProcessed   += self.onFilesDataProcessed
         AUMain.g_AUEvents.onModFilesProcessingDone  += self.onModFilesProcessingDone
         AUMain.g_AUEvents.onFilesProcessingDone     += self.onFilesProcessingDone
-        
-    def createWindow(self):
+    
+    def createWindow(self, handler):
         self.closeWindow()
         
         appLoader = ServicesLocator.appLoader
@@ -186,8 +187,12 @@ class WindowCommon:
         
         app.loadView(SFViewLoadParams('AutoupdaterLobbyWindow'))
         
-        return AUMain.g_AUShared.window
-
+        window = AUMain.g_AUShared.window
+        if window is not None:
+            window.onWindowPopulate += handler
+        
+        return window
+    
     def closeWindow(self):
         window = AUMain.g_AUShared.window
         if window is not None:
@@ -236,7 +241,7 @@ class WindowCommon:
         window.setTitle(title)
         window.setStatus('MODS_LIST', htmlMsg(status, color='228b22'))
         window.setRawProgress('MODS_LIST_DATA', 100)
-
+        
         if exp_time:
             window.setExpTime('%s %s'%(g_AUGUIShared.getMsg('expires'), g_AUGUIShared.exp_time(exp_time)))
     
@@ -362,7 +367,7 @@ class WindowCommon:
         respType = AUMain.ResponseType.index('GET_FILES')
         
         window = AUMain.g_AUShared.window
-        if window not None: return
+        if window is None: return
         
         title  = self.getWindowTitle( respType, False)
         status = self.getWindowStatus(respType, False)
@@ -391,6 +396,5 @@ class WindowCommon:
         if key is not None:
             title, message = messages_titles[key]
             self.createDialog(title=title, message=message, submit=g_AUGUIShared.getMsg('restart'), close=g_AUGUIShared.getMsg('close'), func=func)
-        
 
-g_WindowCommon = WindowCommon()
+AUMain.g_AUShared.windowCommon = g_WindowCommon = WindowCommon()

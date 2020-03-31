@@ -48,6 +48,8 @@ class Events:
 
 class Shared(Error):
     def __init__(self):
+        super(Shared, self).__init__()
+    
         self.mods         = {}
         self.dependencies = {}
         
@@ -74,7 +76,7 @@ class Shared(Error):
             self.config = config
         
     def fail(self, err, extraCode=0):
-        super(self, Shared).fail(err, extraCode)
+        super(Shared, self).fail(err, extraCode)
         
         if isinstance(err, int) and err in xrange(len(ErrorCode)):
             err = ErrorCode[err]

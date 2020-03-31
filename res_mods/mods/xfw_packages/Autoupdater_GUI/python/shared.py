@@ -171,7 +171,7 @@ class Shared:
         if isinstance(result, dict):
             if respType is not None:
                 if isinstance(respType, int) and respType in xrange(len(AUMain.ResponseType)):
-                    respType = AUMain.ResponseType[err]
+                    respType = AUMain.ResponseType[respType]
                 return result[respType]
             raise KeyError('getTitle: respType is None')
         return result
