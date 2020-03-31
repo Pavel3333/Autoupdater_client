@@ -253,21 +253,24 @@ class Mod(Error):
             if curr_dic[ID] == 0:
                 if not exists(subpath):
                     if self.enabled:
+                        if subpath not in self.needToUpdate['file']:
+                            print 'update file', subpath, '(not exists)'
                         self.needToUpdate['ID'].add(ID)
                         self.needToUpdate['file'].add(subpath)
-                        print 'update file', subpath, '(not exists)'
                     continue
                 elif not self.enabled:
+                    if subpath not in self.needToDelete['file']:
+                        print 'delete', subpath
                     self.needToDelete['file'].add(subpath)
-                    print 'delete', subpath
                     continue
                 
                 hash_ = md5(open(subpath, 'rb').read()).hexdigest()
 
                 if hash_ != self.hashes[ID]:
+                    if subpath not in self.needToUpdate['file']:
+                        print 'update file', subpath ,'(hash)'
                     self.needToUpdate['ID'].add(ID)
                     self.needToUpdate['file'].add(subpath)
-                    print 'update file', subpath ,'(hash)'
             else:
                 if self.enabled and not exists(subpath):
                     makedirs(subpath)
@@ -275,7 +278,8 @@ class Mod(Error):
                 self.parseTree(subpath + '/', curr_dic[ID])
                 
                 if not self.enabled:
-                    print 'del dir', subpath
+                    if subpath not in self.needToDelete['dir']:
+                        print 'del dir', subpath
                     self.needToDelete['dir'].add(subpath)
     
     def slots(self):
