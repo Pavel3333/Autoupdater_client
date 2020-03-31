@@ -1,4 +1,4 @@
-from common import *
+from .common import *
 
 __all__ = ('Logger', 'Events', 'g_AUEvents', 'g_AUShared')
 

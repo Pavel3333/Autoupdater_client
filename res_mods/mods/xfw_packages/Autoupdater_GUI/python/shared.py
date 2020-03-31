@@ -3,7 +3,7 @@ AUMain = loader.get_mod_module('com.pavel3333.Autoupdater')
 
 from constants import AUTH_REALM
 
-from common import *
+from .common import *
 
 import json
 

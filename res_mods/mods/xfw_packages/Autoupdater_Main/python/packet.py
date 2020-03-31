@@ -1,4 +1,4 @@
-from common import *
+from .common import *
 
 from urllib import urlopen
 
@@ -14,10 +14,12 @@ class Packet(object):
     def __str__(self): return self.__string
     def __len__(self): return len(self.__string)
 
-class StreamPacket(object):
+class StreamPacket(Error):
     __slots__ = {'conn', 'chunk', 'debug_data', 'offset', 'total_processed', 'total_length', 'onDataProcessed'}
     
     def __init__(self, url, urldata):
+        super(StreamPacket, self).__init__(url, urldata)
+        
         try:
             self.conn = urlopen(url, urldata)
         except:

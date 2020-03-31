@@ -1,5 +1,5 @@
-from common import *
-from packet import *
+from .common import *
+from .packet import *
 
 from struct import pack
 from urllib import urlencode

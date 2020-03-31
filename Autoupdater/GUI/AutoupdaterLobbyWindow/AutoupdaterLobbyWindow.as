@@ -37,7 +37,7 @@
 			var _settings:Object      = settings;
 			this.window.title         = _settings.window.title;
 			this.window.width         = 560;
-			this.window.height        = 437;
+			this.window.height        = 450;
 			this.window.useBottomBtns = _settings.window.useBottomBtns;
 			this.window.invalidate();
 			this.invalidate();

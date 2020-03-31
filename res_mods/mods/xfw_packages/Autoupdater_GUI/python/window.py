@@ -1,9 +1,9 @@
 import xfw_loader.python as loader
 AUMain = loader.get_mod_module('com.pavel3333.Autoupdater')
 
-from common import *
-from shared import *
-from dialog import *
+from .common import *
+from .shared import *
+from .dialog import *
 
 import BigWorld
 from gui.Scaleform.framework import g_entitiesFactories, ViewSettings, ViewTypes, ScopeTemplates
@@ -55,7 +55,7 @@ class AutoupdaterLobbyWindow(AbstractWindowView):
     def __init__(self):
         super(AutoupdaterLobbyWindow, self).__init__()
         
-        self.onWindowPopulate = Event()
+        self.onWindowPopulate = AUMain.Event()
         
         AUMain.g_AUShared.window = self
     
@@ -88,8 +88,8 @@ class AutoupdaterLobbyWindow(AbstractWindowView):
             'DEL'       : 'Files'
         }
         
-        if  (isinstance(statusType, str) and statusType, str not in status_func) or \
-            (isinstance(statusType, int) and statusType, str not in map(AUMain.StatusType.index, status_func)):
+        if  (isinstance(statusType, str) and statusType not in status_func) or \
+            (isinstance(statusType, int) and statusType not in map(AUMain.StatusType.index, status_func)):
                 raise NotImplementedError('Status type is not exists')
         
         if isinstance(statusType, int):
@@ -114,7 +114,7 @@ class AutoupdaterLobbyWindow(AbstractWindowView):
         if isinstance(progressType, int):
             progressType = AUMain.ProgressType[progressType]
         
-        getattr(fobj, 'as_set%sRawProgress'%(progressType))(value)
+        getattr(fobj, 'as_set%sRawProgress'%(progress_func[progressType]))(value)
     
     def setProgress(self, progressType, processed, total, unit):
         fobj = self.flashObject
@@ -139,7 +139,7 @@ class AutoupdaterLobbyWindow(AbstractWindowView):
         if isinstance(progressType, int):
             progressType = AUMain.ProgressType[progressType]
         
-        getattr(fobj, 'as_set%sProgress'%(progressType))(progressText, progressValue)
+        getattr(fobj, 'as_set%sProgress'%(progress_func[progressType]))(progressText, progressValue)
     
     def writeFilesText(self, text):
         if self.flashObject is not None:

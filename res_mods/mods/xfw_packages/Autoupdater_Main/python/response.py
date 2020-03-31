@@ -1,6 +1,6 @@
-from common import *
-from shared import *
-from packet import *
+from .common import *
+from .shared import *
+from .packet import *
 
 import json
 
@@ -10,7 +10,7 @@ from struct  import unpack
 
 __all__ = ('Response', 'ModsListResponse', 'DepsResponse', 'FilesResponse')
 
-class Response(Error, StreamPacket):
+class Response(StreamPacket):
     __slots__ = {'failed', 'code', 'type', 'total_length'}
     
     def __init__(self, urldata, resp_type):
