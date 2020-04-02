@@ -9,8 +9,10 @@
 
 	public class AutoupdaterLobbyWindow extends AbstractWindowView {
 		
-		public var autoupdExp:      TextField;
-		public var autoupdCloseBtn: SoundButtonEx;
+		public var autoupdExp: TextField;
+		
+		public var autoupdCloseBtn:   SoundButtonEx;
+		public var autoupdRestartBtn: SoundButtonEx;
 		
 		public var  modsListStatus:    TextField;
 		public var  modsListPrBarText: TextField;
@@ -36,18 +38,18 @@
 			// apply window settings and invalidate main window size and size of inherited elements
 			var _settings:Object      = settings;
 			this.window.title         = _settings.window.title;
-			this.window.width         = 560;
-			this.window.height        = 460;
-			this.window.useBottomBtns = _settings.window.useBottomBtns;
+			this.window.width         = _settings.window.width;
+			this.window.height        = _settings.window.height;
+			this.window.useBottomBtns = true;
 			this.window.invalidate();
 			this.invalidate();
 			
 			
 			// init progress bar values
-			this.modsListPrBarVO.minValue = _settings.modsListPrBar.minValue;
-			this.modsListPrBarVO.maxValue = _settings.modsListPrBar.maxValue;
-			this.modsListPrBarVO.value    = _settings.modsListPrBar.value;
-			this.modsListPrBarVO.useAnim  = _settings.modsListPrBar.useAnim;
+			this.modsListPrBarVO.minValue = 0;
+			this.modsListPrBarVO.maxValue = 100;
+			this.modsListPrBarVO.value    = 0;
+			this.modsListPrBarVO.useAnim  = true;
 
 			// set progress bar size and invalidate constraints
 			this.modsListPrBar.setActualSize(_settings.modsListPrBar.width, _settings.modsListPrBar.height);
@@ -62,10 +64,10 @@
 			this.filesTextScrollBar.y            = this.filesText.y;
 			
 			// init progress bar values
-			this.filesDataPrBarVO.minValue = _settings.filesDataPrBar.minValue;
-			this.filesDataPrBarVO.maxValue = _settings.filesDataPrBar.maxValue;
-			this.filesDataPrBarVO.value    = _settings.filesDataPrBar.value;
-			this.filesDataPrBarVO.useAnim  = _settings.filesDataPrBar.useAnim;
+			this.filesDataPrBarVO.minValue = 0;
+			this.filesDataPrBarVO.maxValue = 100;
+			this.filesDataPrBarVO.value    = 0;
+			this.filesDataPrBarVO.useAnim  = true;
 
 			// set progress bar size and invalidate constraints
 			this.filesDataPrBar.setActualSize(_settings.filesDataPrBar.width, _settings.filesDataPrBar.height);
@@ -74,10 +76,10 @@
 			}
 			
 			// init progress bar values
-			this.filesTotalPrBarVO.minValue = _settings.filesTotalPrBar.minValue;
-			this.filesTotalPrBarVO.maxValue = _settings.filesTotalPrBar.maxValue;
-			this.filesTotalPrBarVO.value    = _settings.filesTotalPrBar.value;
-			this.filesTotalPrBarVO.useAnim  = _settings.filesTotalPrBar.useAnim;
+			this.filesTotalPrBarVO.minValue = 0;
+			this.filesTotalPrBarVO.maxValue = 100;
+			this.filesTotalPrBarVO.value    = 0;
+			this.filesTotalPrBarVO.useAnim  = true;
 
 			// set progress bar size and invalidate constraints
 			this.filesTotalPrBar.setActualSize(_settings.filesTotalPrBar.width, _settings.filesTotalPrBar.height);
@@ -90,6 +92,11 @@
 			this.autoupdCloseBtn.setActualSize(_settings.autoupdCloseBtn.width, _settings.autoupdCloseBtn.height);
 			this.autoupdCloseBtn.addEventListener(MouseEvent.CLICK, this.cancelClick);
 			this.autoupdCloseBtn.label = _settings.autoupdCloseBtn.label;
+			
+			// setup close button
+			this.autoupdRestartBtn.setActualSize(_settings.autoupdRestartBtn.width, _settings.autoupdRestartBtn.height);
+			this.autoupdRestartBtn.addEventListener(MouseEvent.CLICK, this.restartClick);
+			this.autoupdRestartBtn.label = _settings.autoupdRestartBtn.label;
 		}
 		
 		public function as_setExpTime(text: String): void {
@@ -148,7 +155,10 @@
 			this.as_setFilesTotalRawProgress(value);
 		}
 		
-
+		private function restartClick(e: MouseEvent): void {
+			this.handleWindowClose();
+		}
+		
 		private function cancelClick(e: MouseEvent): void {
 			this.handleWindowClose();
 		}
@@ -159,6 +169,7 @@
 
 		override protected function onDispose(): void {
 			this.autoupdCloseBtn.removeEventListener(MouseEvent.CLICK, this.cancelClick);
+			this.autoupdRestartBtn.removeEventListener(MouseEvent.CLICK, this.restartClick);
 			super.onDispose();
 		}
 	}

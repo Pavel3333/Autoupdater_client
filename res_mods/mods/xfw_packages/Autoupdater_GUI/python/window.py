@@ -18,36 +18,30 @@ __all__ = ('g_WindowCommon',)
 INIT_DATA = {
     "window" : {
         "title"         : g_AUGUIShared.getTitle('main'),
-        "useBottomBtns" : True
+        "width"         : 560,
+        "height"        : 480
     },
     "modsListPrBar" : {
         "width"    : 255,
-        "height"   : 12,
-        "minValue" : 0,
-        "maxValue" : 100,
-        "useAnim"  : True,
-        "value"    : 0
+        "height"   : 12
     },
     "filesDataPrBar" : {
         "width"    : 255,
-        "height"   : 12,
-        "minValue" : 0,
-        "maxValue" : 100,
-        "useAnim"  : True,
-        "value"    : 0
+        "height"   : 12
     },
     "filesTotalPrBar" : {
         "width"    : 255,
-        "height"   : 12,
-        "minValue" : 0,
-        "maxValue" : 100,
-        "useAnim"  : True,
-        "value"    : 0
+        "height"   : 12
     },
     "autoupdCloseBtn": {
         "width"  : 100,
         "height" : 22,
         "label"  : g_AUGUIShared.getMsg('close')
+    },
+    "autoupdRestartBtn": {
+        "width"  : 100,
+        "height" : 22,
+        "label"  : g_AUGUIShared.getMsg('restart')
     }
 }
 
