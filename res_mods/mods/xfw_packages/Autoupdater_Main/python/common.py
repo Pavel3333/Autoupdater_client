@@ -22,22 +22,26 @@ ErrorCode = (
     'SUCCESS',           # 0
     'TRANSLATIONS',      # 1
     'CONFIG',            # 2
-    'CHECKING_ID',       # 3
-    'FILES_NOT_FOUND',   # 4
-    'LIC_INVALID',       # 5
-    'CONNECT',           # 6
-    'RESP_TOO_SMALL',    # 7
-    'RESP_SIZE_INVALID', # 8
-    'GETTING_MODS',      # 9
-    'READING_MODS',      # 10
-    'GETTING_DEPS',      # 11
-    'READING_DEPS',      # 12
-    'GETTING_FILES',     # 13
-    'INVALID_FILE_SIZE', # 14
-    'CREATING_FILE',     # 15
-    'GET_MOD_FIELDS',    # 16
-    'DECODE_MOD_FIELDS', # 17
-    'DELETING_FILE'      # 18
+    'LOAD_XFW_NATIVE',   # 3
+    'UNPACK_NATIVE',     # 4
+    'LOAD_NATIVE',       # 5
+    'CHECKING_ID',       # 6
+    'FILES_NOT_FOUND',   # 7
+    'LIC_INVALID',       # 8
+    'CONNECT',           # 9
+    'RESP_TOO_SMALL',    # 10
+    'RESP_SIZE_INVALID', # 11
+    'GETTING_MODS',      # 12
+    'READING_MODS',      # 13
+    'GETTING_DEPS',      # 14
+    'READING_DEPS',      # 15
+    'GETTING_FILES',     # 16
+    'INVALID_PATH_LEN',  # 17
+    'INVALID_FILE_SIZE', # 18
+    'CREATING_FILE',     # 19
+    'GET_MOD_FIELDS',    # 20
+    'DECODE_MOD_FIELDS', # 21
+    'DELETING_FILE'      # 22
 )
 
 WarningCode = {
