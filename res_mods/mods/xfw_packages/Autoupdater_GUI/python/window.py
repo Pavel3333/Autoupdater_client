@@ -17,21 +17,9 @@ __all__ = ('g_WindowCommon',)
 
 INIT_DATA = {
     "window" : {
-        "title"         : g_AUGUIShared.getTitle('main'),
-        "width"         : 560,
-        "height"        : 480
-    },
-    "modsListPrBar" : {
-        "width"    : 255,
-        "height"   : 12
-    },
-    "filesDataPrBar" : {
-        "width"    : 255,
-        "height"   : 12
-    },
-    "filesTotalPrBar" : {
-        "width"    : 255,
-        "height"   : 12
+        "width"  : 540,
+        "height" : 460,
+        "title"  : g_AUGUIShared.getTitle('main'),
     },
     "autoupdCloseBtn": {
         "width"  : 100,
@@ -45,7 +33,43 @@ INIT_DATA = {
     }
 }
 
-class AutoupdaterLobbyWindow(AbstractWindowView):
+class AutoupdaterLobbyWindowMeta(AbstractWindowView):
+    def as_setupUpdateWindowS(self, settings):
+        if self._isDAAPIInited():
+            self.flashObject.as_setupUpdateWindow(settings)
+    
+    def as_setExpTimeS(self, text):
+        if self._isDAAPIInited():
+            self.flashObject.as_setExpTime(text)
+    
+    def as_setTitleS(self, text):
+        if self._isDAAPIInited():
+                return self.flashObject.as_setTitle(text)
+    
+    def as_setStatusS(self, statusType, text):
+        if self._isDAAPIInited():
+            return self.flashObject.as_setStatus(statusType, text)
+    
+    def as_setRawProgressS(self, progressType, value):
+        if self._isDAAPIInited():
+            return self.flashObject.as_setRawProgress(progressType, value)
+    
+    def as_setProgressS(self, progressType, text, value):
+        if self._isDAAPIInited():
+            return self.flashObject.as_setProgress(progressType, text, value)
+    
+    def as_writeFilesTextS(self, text):
+        if self._isDAAPIInited():
+            return self.flashObject.as_writeFilesText(text)
+    
+    def as_writeLineFilesTextS(self, text):
+        if self._isDAAPIInited():
+            return self.flashObject.as_writeLineFilesText(text)
+    
+    def onWindowClose(self):
+        self.destroy()
+
+class AutoupdaterLobbyWindow(AutoupdaterLobbyWindowMeta):
     def __init__(self):
         super(AutoupdaterLobbyWindow, self).__init__()
         
@@ -55,7 +79,7 @@ class AutoupdaterLobbyWindow(AbstractWindowView):
     
     def _populate(self):
         super(AutoupdaterLobbyWindow, self)._populate()
-        self.flashObject.as_setupUpdateWindow(INIT_DATA)
+        self.as_setupUpdateWindowS(INIT_DATA)
         
         self.onWindowPopulate()
     
@@ -64,88 +88,72 @@ class AutoupdaterLobbyWindow(AbstractWindowView):
         return int(100.0 * (float(processed) / float(total)))
     
     def setTitle(self, title):
-        if self.flashObject is not None:
-            self.flashObject.as_setTitle(title)
+        self.as_setTitleS(title)
+    
+    def dbg(self):
+        print 'AUTOUPD DBG'
     
     def setExpTime(self, text):
-        if self.flashObject is not None:
-            self.flashObject.as_setExpTime(text)
+        self.as_setExpTimeS(text)
     
     def setStatus(self, statusType, status):
-        fobj = self.flashObject
-        if fobj is None: return
+        statuses = (
+            'MODS_LIST', # 0 -> ModsList
+            'DEPS',      # 1 -> ModsList
+            'FILES',     # 2 -> Files
+            'DEL'        # 3 -> Files
+        )
         
-        status_func = {
-            'MODS_LIST' : 'ModsList',
-            'DEPS'      : 'ModsList',
-            'FILES'     : 'Files',
-            'DEL'       : 'Files'
-        }
-        
-        if  (isinstance(statusType, str) and statusType not in status_func) or \
-            (isinstance(statusType, int) and statusType not in map(AUMain.StatusType.index, status_func)):
-                raise NotImplementedError('Status type is not exists')
-        
-        if isinstance(statusType, int):
-            statusType = AUMain.StatusType[statusType]
-        
-        getattr(fobj, 'as_set%sStatus'%(status_func[statusType]))(status)
+        if isinstance(statusType, str) and statusType in statuses:
+            self.as_setStatusS(statuses.index(statusType), status)
+        elif isinstance(statusType, int) and statusType in xrange(len(statuses)):
+            self.as_setStatusS(statusType, status)
+        else:
+            raise NotImplementedError('Status type is not exists')
     
     def setRawProgress(self, progressType, value):
-        fobj = self.flashObject
-        if fobj is None: return
+        progresses = (
+            'MODS_LIST_DATA', # 0 -> ModsList
+            'FILES_DATA',     # 1 -> FilesData
+            'FILES_TOTAL'     # 2 -> FilesTotal
+        )
         
-        progress_func = {
-            'MODS_LIST_DATA' : 'ModsList',
-            'FILES_DATA'     : 'FilesData',
-            'FILES_TOTAL'    : 'FilesTotal'
-        }
-        
-        if  (isinstance(progressType, str) and progressType not in progress_func) or \
-            (isinstance(progressType, int) and progressType not in map(AUMain.ProgressType.index, progress_func)):
-                raise NotImplementedError('Progress type is not exists')
-        
-        if isinstance(progressType, int):
-            progressType = AUMain.ProgressType[progressType]
-        
-        getattr(fobj, 'as_set%sRawProgress'%(progress_func[progressType]))(value)
+        if isinstance(progressType, str) and progressType in progresses:
+            self.as_setRawProgressS(progresses.index(progressType), value)
+        elif isinstance(progressType, int) and progressType in xrange(len(progresses)):
+            self.as_setRawProgressS(progressType, value)
+        else:
+            raise NotImplementedError('Progress type is not exists')
     
     def setProgress(self, progressType, processed, total, unit):
-        fobj = self.flashObject
-        if fobj is None: return
-        
         if isinstance(unit, int):
             unit = AUMain.DataUnits[unit] if unit in xrange(len(AUMain.DataUnits)) else ''
         
-        progressValue = self.getProgress(processed, total)
         progressText  = '%s/%s %s'%(processed, total, unit)
+        progressValue = self.getProgress(processed, total)
         
-        progress_func = {
-            'MODS_LIST_DATA' : 'ModsList',
-            'FILES_DATA'     : 'FilesData',
-            'FILES_TOTAL'    : 'FilesTotal'
-        }
+        progresses = (
+            'MODS_LIST_DATA', # 0 -> ModsList
+            'FILES_DATA',     # 1 -> FilesData
+            'FILES_TOTAL'     # 2 -> FilesTotal
+        )
         
-        if  (isinstance(progressType, str) and progressType not in progress_func) or \
-            (isinstance(progressType, int) and progressType not in map(AUMain.ProgressType.index, progress_func)):
-                raise NotImplementedError('Progress type is not exists')
-        
-        if isinstance(progressType, int):
-            progressType = AUMain.ProgressType[progressType]
-        
-        getattr(fobj, 'as_set%sProgress'%(progress_func[progressType]))(progressText, progressValue)
+        if isinstance(progressType, str) and progressType in progresses:
+            self.as_setProgressS(progresses.index(progressType), progressText, progressValue)
+        elif isinstance(progressType, int) and progressType in xrange(len(progresses)):
+            self.as_setProgressS(progressType, progressText, progressValue)
+        else:
+            raise NotImplementedError('Progress type is not exists')
     
     def writeFilesText(self, text):
-        if self.flashObject is not None:
-            self.flashObject.as_writeFilesText(text)
+        self.as_writeFilesTextS(text)
     
     def writeLineFilesText(self, text):
-        if self.flashObject is not None:
-            self.flashObject.as_writeLineFilesText(text)
+        self.as_writeLineFilesTextS(text)
     
     def onWindowClose(self):
         AUMain.g_AUShared.window = None
-        self.destroy()
+        super(AutoupdaterLobbyWindow, self).onWindowClose()
 
 if not g_entitiesFactories.getSettings('AutoupdaterLobbyWindow'):
     g_entitiesFactories.addSettings(ViewSettings('AutoupdaterLobbyWindow', AutoupdaterLobbyWindow, 'AutoupdaterLobbyWindow.swf', ViewTypes.WINDOW, None, ScopeTemplates.VIEW_SCOPE))

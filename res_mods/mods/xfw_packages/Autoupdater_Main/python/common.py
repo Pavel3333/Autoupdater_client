@@ -269,8 +269,7 @@ class Mod(Error):
                     continue
                 
                 hash_ = md5(open(subpath, 'rb').read()).hexdigest()
-
-                if hash_ != self.hashes[ID]:
+                if ID in self.hashes and hash_ != self.hashes[ID]:
                     if subpath not in self.needToUpdate['file']:
                         print 'update file', subpath ,'(hash)'
                     self.needToUpdate['ID'].add(ID)
