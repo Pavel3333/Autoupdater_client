@@ -252,6 +252,7 @@ class Autoupdater:
         mods = g_AUShared.mods if not isDependency else g_AUShared.dependencies
         
         self.module.get_files(
+            self.ID,
             mods,
             g_AUEvents.onFilesProcessingStart,
             g_AUEvents.onModFilesProcessingStart,
