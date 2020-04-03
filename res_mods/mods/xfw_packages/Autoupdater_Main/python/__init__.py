@@ -249,6 +249,8 @@ class Autoupdater:
     def getFiles(self, isDependency):
         if not g_AUShared.check(): return 0
         
+        mods = g_AUShared.mods if not isDependency else g_AUShared.dependencies
+        
         self.module.get_files(
             mods,
             g_AUEvents.onFilesProcessingStart,
@@ -256,8 +258,6 @@ class Autoupdater:
             g_AUEvents.onModFilesProcessingDone,
             g_AUEvents.onFilesProcessingDone,
         )
-        
-        mods = g_AUShared.mods if not isDependency else g_AUShared.dependencies
         
         mods_count = len(filter(lambda mod: mod.needToUpdate['ID'], mods.values()))
         

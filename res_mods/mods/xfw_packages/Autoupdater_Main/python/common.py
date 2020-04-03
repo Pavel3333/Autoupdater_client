@@ -186,11 +186,9 @@ DeleteExclude = {
     'dir' : {
         'game_metadata',
         'mods',
-        'mods/1.8.0.1', #TODO
         'replays',
         'res',
         'res_mods',
-        'res_mods/1.8.0.1', #TODO
         'screenshots',
         'updates',
         'win32',
@@ -263,8 +261,8 @@ class Mod(Error):
                         self.needToUpdate['file'].add(subpath)
                     continue
                 elif not self.enabled:
-                    if subpath not in self.needToDelete['file']:
-                        print 'delete', subpath
+                    #if subpath not in self.needToDelete['file']:
+                    #    print 'delete', subpath
                     self.needToDelete['file'].add(subpath)
                     continue
                 
@@ -281,8 +279,8 @@ class Mod(Error):
                 self.parseTree(subpath + '/', curr_dic[ID])
                 
                 if not self.enabled:
-                    if subpath not in self.needToDelete['dir']:
-                        print 'del dir', subpath
+                    #if subpath not in self.needToDelete['dir']:
+                    #    print 'del dir', subpath
                     self.needToDelete['dir'].add(subpath)
     
     def slots(self):
