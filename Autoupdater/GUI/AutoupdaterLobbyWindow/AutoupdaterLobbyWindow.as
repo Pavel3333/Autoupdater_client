@@ -13,7 +13,7 @@
 		
 		public var autoupdExp: TextField;
 		
-		//public var autoupdRestartBtn: SoundButtonEx;
+		public var autoupdRestartBtn: SoundButtonEx;
 		public var autoupdCloseBtn:   SoundButtonEx;
 		
 		public var  modsListStatus:    TextField;
@@ -43,7 +43,7 @@
 			this.window.width         = _settings.window.width;
 			this.window.height        = _settings.window.height;
 			this.window.useBottomBtns = true;
-			this.window.invalidate();
+			//this.window.invalidate();
 			this.invalidate();
 			
 			
@@ -90,8 +90,9 @@
 			}
 			
 			// setup restart button
-			//this.autoupdRestartBtn.setActualSize(_settings.autoupdRestartBtn.width, _settings.autoupdRestartBtn.height);
-			//this.autoupdRestartBtn.label = _settings.autoupdRestartBtn.label;
+			this.autoupdRestartBtn.setActualSize(_settings.autoupdRestartBtn.width, _settings.autoupdRestartBtn.height);
+			this.autoupdRestartBtn.addEventListener(MouseEvent.CLICK, this.restartClick);
+			this.autoupdRestartBtn.label = _settings.autoupdRestartBtn.label;
 			
 			// setup close button
 			this.autoupdCloseBtn.setActualSize(_settings.autoupdCloseBtn.width, _settings.autoupdCloseBtn.height);
@@ -161,15 +162,12 @@
 		}
 		
 		private function cancelClick(e: MouseEvent): void {
-			this.as_writeFilesText("DBG<br>");
-			DebugUtils.LOG_DEBUG("SWF DBG");
-			try {
-			    dbg();
-			}
-			catch(err: Error) {
-				DebugUtils.LOG_ERROR("AutoupdaterLobbyWindow::cancelClick: " + dbg + " " + err.getStackTrace());
-		    }
-			//this.handleWindowClose();
+			this.handleWindowClose();
+		}
+		
+		private function restartClick(e: MouseEvent): void {
+			this.as_writeFilesText("Restart clicked<br>");
+			//dbg();
 		}
 
 		override protected function onPopulate(): void {
@@ -177,6 +175,7 @@
 		}
 
 		override protected function onDispose(): void {
+			this.autoupdRestartBtn.removeEventListener(MouseEvent.CLICK, this.restartClick);
 			this.autoupdCloseBtn.removeEventListener(MouseEvent.CLICK, this.cancelClick);
 			super.onDispose();
 		}
