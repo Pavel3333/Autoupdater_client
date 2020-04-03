@@ -19,6 +19,8 @@ from os      import listdir, makedirs, remove, rmdir
 from os.path import exists, isfile
 
 class Autoupdater:
+    MOD_ID = 'com.pavel3333.Autoupdater'
+    
     hangarSpace = dependency.descriptor(IHangarSpace)
     
     def __init__(self):
@@ -35,6 +37,22 @@ class Autoupdater:
         self.unpackAfterFini = False
         self.deleteAfterFini = False
         self.finiHooked      = False
+        
+        import xfw_loader.python as loader
+       
+        xfwnative = loader.get_mod_module('com.modxvm.xfw.native')
+        if xfwnative is None:
+            g_AUShared.fail('LOAD_XFW_NATIVE')
+            return
+        
+        if not xfwnative.unpack_native(self.MOD_ID):
+            g_AUShared.fail('UNPACK_NATIVE')
+            return
+        
+        self.module = xfwnative.load_native(self.MOD_ID, 'AUGetter.pyd', 'AUGetter')
+        if not self.module:
+            g_AUShared.fail('LOAD_NATIVE')
+            return
         
         g_playerEvents.onAccountShowGUI += self.getID
     
@@ -165,10 +183,10 @@ class Autoupdater:
             reverse = True
         )
         
-        deleted = self.delFiles(toDelete)
+        self.delFiles(toDelete)
         
-        updated_deps = self.getFiles(g_AUShared.dependencies, True)
-        updated_mods = self.getFiles(g_AUShared.mods,         False)
+        updated_deps = self.getFiles(True)
+        updated_mods = self.getFiles(False)
         
         updated = updated_mods + updated_deps
         
@@ -176,9 +194,6 @@ class Autoupdater:
         
         if self.deleteAfterFini:
             key = 'delete'
-            with open(Paths.DELETED_PATH, 'wb') as fil:
-                for path in g_AUShared.undeletedPaths:
-                    fil.write(path + '\n')
             self.hookFini()
         elif self.unpackAfterFini:
             key = 'create'
@@ -222,14 +237,27 @@ class Autoupdater:
             #else:
             #    g_AUShared.logger.log('Directory %s is not empty'%(path))
         
+        if g_AUShared.undeletedPaths:
+            with open(Paths.DELETED_PATH, 'wb') as fil:
+                for path in g_AUShared.undeletedPaths:
+                    fil.write(path + '\n')
+        
         self.deleteAfterFini = bool(g_AUShared.undeletedPaths)
         
         g_AUEvents.onDeletingDone(deleted, paths_count)
-        
-        return deleted
     
-    def getFiles(self, mods, isDependency):
+    def getFiles(self, isDependency):
         if not g_AUShared.check(): return 0
+        
+        self.module.get_files(
+            mods,
+            g_AUEvents.onFilesProcessingStart,
+            g_AUEvents.onModFilesProcessingStart,
+            g_AUEvents.onModFilesProcessingDone,
+            g_AUEvents.onFilesProcessingDone,
+        )
+        
+        mods = g_AUShared.mods if not isDependency else g_AUShared.dependencies
         
         mods_count = len(filter(lambda mod: mod.needToUpdate['ID'], mods.values()))
         
@@ -247,21 +275,13 @@ class Autoupdater:
             req.parse('I', len(mod.needToUpdate['ID']))
             for updID in mod.needToUpdate['ID']:
                 req.parse('I', int(updID))
-            g_AUEvents.onModFilesProcessingStart(updated, mod.name, isDependency)
+            g_AUEvents.onModFilesProcessingStart(mod.name, isDependency)
             
             resp = FilesResponse(req.get_data(), req.get_type())
             
-            g_AUEvents.onModFilesProcessingDone(mod, updated, mods_count, resp.failed, resp.code)
-            
-            if resp.failed == ErrorCode.index('SUCCESS'):
-                updated += 1
-            elif resp.failed == ErrorCode.index('CREATING_FILE'):
-                self.unpackAfterFini = True
-            else:
-                g_AUShared.fail(resp.failed, resp.code)
-                break
+            g_AUEvents.onModFilesProcessingDone(mod, resp.failed, resp.code)
         
-        g_AUEvents.onFilesProcessingDone(updated, mods_count)
+        g_AUEvents.onFilesProcessingDone()
         
         return updated
     

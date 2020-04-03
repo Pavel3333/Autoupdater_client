@@ -153,13 +153,12 @@ class DepsResponse(Response):
         return super(DepsResponse, self).slots() | self.__slots__
             
 class FilesResponse(Response):
-    __slots__ = {'files_count', 'files'}
+    __slots__ = {'files_count'}
     
     def __init__(self, *args):
         super(FilesResponse, self).__init__(*args)
         
         self.files_count = 0
-        self.files = []
         
         self.init()
         
@@ -174,26 +173,16 @@ class FilesResponse(Response):
         
         for i in xrange(self.files_count):
             path_len = self.parse('H', 2)[0]
-            path = self.read(path_len)
+            if file_size <= 0 or file_size > self.total_length:
+                self.fail('INVALID_PATH_LEN')
+                return
             file_size = self.parse('I', 4)[0]
-            file_data = ''
-            if file_size > self.total_length:
+            if file_size <= 0 or file_size > self.total_length:
                 self.fail('INVALID_FILE_SIZE')
                 return
-            elif file_size > 0:
-                file_data = file_data = self.read(file_size)
             
-            self.files.append({
-                'path'      : path,
-                'path_len'  : path_len,
-                'file_size' : file_size
-            })
-            
-            print {
-                'path'      : path,
-                'path_len'  : path_len,
-                'file_size' : file_size
-            }
+            path = self.read(path_len)
+            file_data = self.read(file_size)
             
             try:
                 with open('./' + path, 'wb') as fil:
