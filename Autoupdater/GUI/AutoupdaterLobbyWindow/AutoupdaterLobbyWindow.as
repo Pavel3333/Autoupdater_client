@@ -9,10 +9,12 @@
 
 	public class AutoupdaterLobbyWindow extends AbstractWindowView {
 		
+        public var dbg: Function = null;
+		
 		public var autoupdExp: TextField;
 		
+		//public var autoupdRestartBtn: SoundButtonEx;
 		public var autoupdCloseBtn:   SoundButtonEx;
-		public var autoupdRestartBtn: SoundButtonEx;
 		
 		public var  modsListStatus:    TextField;
 		public var  modsListPrBarText: TextField;
@@ -52,7 +54,7 @@
 			this.modsListPrBarVO.useAnim  = true;
 
 			// set progress bar size and invalidate constraints
-			this.modsListPrBar.setActualSize(_settings.modsListPrBar.width, _settings.modsListPrBar.height);
+			this.modsListPrBar.setActualSize(this.modsListPrBarText.width, 12);
 			if (modsListPrBarVO.value > 0) {
 				this.modsListPrBar.setData(modsListPrBarVO);
 			}
@@ -70,7 +72,7 @@
 			this.filesDataPrBarVO.useAnim  = true;
 
 			// set progress bar size and invalidate constraints
-			this.filesDataPrBar.setActualSize(_settings.filesDataPrBar.width, _settings.filesDataPrBar.height);
+			this.filesDataPrBar.setActualSize(this.filesDataPrBarText.width, 12);
 			if (filesDataPrBarVO.value > 0) {
 				this.filesDataPrBar.setData(filesDataPrBarVO);
 			}
@@ -82,21 +84,19 @@
 			this.filesTotalPrBarVO.useAnim  = true;
 
 			// set progress bar size and invalidate constraints
-			this.filesTotalPrBar.setActualSize(_settings.filesTotalPrBar.width, _settings.filesTotalPrBar.height);
+			this.filesTotalPrBar.setActualSize(this.filesTotalPrBarText.width, 12);
 			if (filesTotalPrBarVO.value > 0) {
 				this.filesTotalPrBar.setData(filesTotalPrBarVO);
 			}
 			
+			// setup restart button
+			//this.autoupdRestartBtn.setActualSize(_settings.autoupdRestartBtn.width, _settings.autoupdRestartBtn.height);
+			//this.autoupdRestartBtn.label = _settings.autoupdRestartBtn.label;
 			
 			// setup close button
 			this.autoupdCloseBtn.setActualSize(_settings.autoupdCloseBtn.width, _settings.autoupdCloseBtn.height);
 			this.autoupdCloseBtn.addEventListener(MouseEvent.CLICK, this.cancelClick);
 			this.autoupdCloseBtn.label = _settings.autoupdCloseBtn.label;
-			
-			// setup close button
-			this.autoupdRestartBtn.setActualSize(_settings.autoupdRestartBtn.width, _settings.autoupdRestartBtn.height);
-			this.autoupdRestartBtn.addEventListener(MouseEvent.CLICK, this.restartClick);
-			this.autoupdRestartBtn.label = _settings.autoupdRestartBtn.label;
 		}
 		
 		public function as_setExpTime(text: String): void {
@@ -107,24 +107,49 @@
 			this.window.title = text;
 		}
 		
-		
-		public function as_setModsListStatus(text: String): void {
-			this.modsListStatus.htmlText = text;
+		public function as_setStatus(statusType: int, text: String): void {
+			switch(statusType) {
+			    case 0:
+				case 1:
+					this.modsListStatus.htmlText = text;
+				    break;
+				case 2:
+				case 3:
+					this.filesStatus.htmlText = text;
+				    break;
+			}
 		}
 		
-		public function as_setModsListRawProgress(value: int): void {
-			this.modsListPrBarVO.value = value;
+		public function as_setRawProgress(progressType: int, value: int): void {
+			switch(progressType) {
+				case 0:
+					this.modsListPrBarVO.value = value;
+				    break;
+				case 1:
+					this.filesDataPrBarVO.value = value;
+				    break;
+				case 2:
+					this.filesTotalPrBarVO.value = value;
+				    break;
+			}
+			
 			this.modsListPrBar.setData(modsListPrBarVO);
 		}
 		
-		public function as_setModsListProgress(text:String, value: int): void {
-			this.modsListPrBarText.htmlText = text;
-			this.as_setModsListRawProgress(value);
-		}
-		
-		
-		public function as_setFilesStatus(text: String): void {
-			this.filesStatus.htmlText = text;
+		public function as_setProgress(progressType: int, text:String, value: int): void {
+			switch(progressType) {
+				case 0:
+					this.modsListPrBarText.htmlText = text;
+				    break;
+				case 1:
+					this.filesDataPrBarText.htmlText = text;
+				    break;
+				case 2:
+					this.filesTotalPrBarText.htmlText = text;
+				    break;
+			}
+			
+			this.as_setRawProgress(progressType, value);
 		}
 		
 		public function as_writeFilesText(text: String): void {
@@ -135,32 +160,16 @@
 			this.as_writeFilesText(text + "<br>");
 		}
 		
-		public function as_setFilesDataRawProgress(value: int): void {
-			this.filesDataPrBarVO.value = value;
-			this.filesDataPrBar.setData(filesDataPrBarVO);
-		}
-		
-		public function as_setFilesDataProgress(text:String, value: int): void {
-			this.filesDataPrBarText.htmlText = text;
-			this.as_setFilesDataRawProgress(value);
-		}
-		
-		public function as_setFilesTotalRawProgress(value: int): void {
-			this.filesTotalPrBarVO.value = value;
-			this.filesTotalPrBar.setData(filesTotalPrBarVO);
-		}
-		
-		public function as_setFilesTotalProgress(text:String, value: int): void {
-			this.filesTotalPrBarText.htmlText = text;
-			this.as_setFilesTotalRawProgress(value);
-		}
-		
-		private function restartClick(e: MouseEvent): void {
-			this.handleWindowClose();
-		}
-		
 		private function cancelClick(e: MouseEvent): void {
-			this.handleWindowClose();
+			this.as_writeFilesText("DBG<br>");
+			DebugUtils.LOG_DEBUG("SWF DBG");
+			try {
+			    dbg();
+			}
+			catch(err: Error) {
+				DebugUtils.LOG_ERROR("AutoupdaterLobbyWindow::cancelClick: " + dbg + " " + err.getStackTrace());
+		    }
+			//this.handleWindowClose();
 		}
 
 		override protected function onPopulate(): void {
@@ -169,7 +178,6 @@
 
 		override protected function onDispose(): void {
 			this.autoupdCloseBtn.removeEventListener(MouseEvent.CLICK, this.cancelClick);
-			this.autoupdRestartBtn.removeEventListener(MouseEvent.CLICK, this.restartClick);
 			super.onDispose();
 		}
 	}
