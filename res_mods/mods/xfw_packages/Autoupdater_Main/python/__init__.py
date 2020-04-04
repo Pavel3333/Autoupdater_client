@@ -250,7 +250,7 @@ class Autoupdater:
         if not g_AUShared.check(): return 0
         
         mods = g_AUShared.mods if not isDependency else g_AUShared.dependencies
-        
+        print 'mods is', mods
         self.module.get_files(
             self.ID,
             mods,
@@ -260,6 +260,8 @@ class Autoupdater:
             g_AUEvents.onFilesProcessingDone,
         )
         
+        return 0
+        """
         mods_count = len(filter(lambda mod: mod.needToUpdate['ID'], mods.values()))
         
         g_AUEvents.onFilesProcessingStart(mods_count)
@@ -284,7 +286,7 @@ class Autoupdater:
         
         g_AUEvents.onFilesProcessingDone()
         
-        return updated
+        return updated"""
     
     def hookFini(self):
         if self.finiHooked: return

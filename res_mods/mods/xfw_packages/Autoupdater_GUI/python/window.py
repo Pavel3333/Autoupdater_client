@@ -371,10 +371,10 @@ class WindowCommon:
             g_AUShared.fail(err, code)
             return
     
-    def onFilesDataProcessed(self, unit):
+    def onFilesDataProcessed(self, processed, total, unit):
         window = AUMain.g_AUShared.window
         if window is not None:
-            window.setProgress('FILES_DATA', self.processedMods, self.countMods, unit)
+            window.setProgress('FILES_DATA', processed, total, unit)
     
     def onFilesProcessingDone(self):
         respType = AUMain.ResponseType.index('GET_FILES')
