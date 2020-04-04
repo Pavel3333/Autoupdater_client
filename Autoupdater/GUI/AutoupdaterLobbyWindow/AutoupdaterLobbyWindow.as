@@ -1,4 +1,5 @@
 ﻿package {
+	import scaleform.clik.constants.InvalidationType;
 	import flash.events.MouseEvent;
 	import flash.text.TextField;
 	import net.wg.gui.components.controls.SoundButtonEx;
@@ -43,8 +44,8 @@
 			this.window.width         = _settings.window.width;
 			this.window.height        = _settings.window.height;
 			this.window.useBottomBtns = true;
-			//this.window.invalidate();
-			this.invalidate();
+			this.window.validateNow();
+			this.validateNow();
 			
 			
 			// init progress bar values
@@ -89,12 +90,15 @@
 				this.filesTotalPrBar.setData(filesTotalPrBarVO);
 			}
 			
+			
 			// setup restart button
+			this.autoupdRestartBtn.validateNow();
 			this.autoupdRestartBtn.setActualSize(_settings.autoupdRestartBtn.width, _settings.autoupdRestartBtn.height);
 			this.autoupdRestartBtn.addEventListener(MouseEvent.CLICK, this.restartClick);
 			this.autoupdRestartBtn.label = _settings.autoupdRestartBtn.label;
 			
 			// setup close button
+			this.autoupdCloseBtn.validateNow();
 			this.autoupdCloseBtn.setActualSize(_settings.autoupdCloseBtn.width, _settings.autoupdCloseBtn.height);
 			this.autoupdCloseBtn.addEventListener(MouseEvent.CLICK, this.cancelClick);
 			this.autoupdCloseBtn.label = _settings.autoupdCloseBtn.label;
