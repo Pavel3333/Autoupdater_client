@@ -10,7 +10,7 @@
 
 	public class AutoupdaterLobbyWindow extends AbstractWindowView {
 		
-        public var dbg: Function = null;
+        public var onRestartClicked: Function = null;
 		
 		public var autoupdExp: TextField;
 		
@@ -44,8 +44,8 @@
 			this.window.width         = _settings.window.width;
 			this.window.height        = _settings.window.height;
 			this.window.useBottomBtns = true;
-			this.window.validateNow();
-			this.validateNow();
+			this.window.invalidate();
+			this.invalidate();
 			
 			
 			// init progress bar values
@@ -92,13 +92,11 @@
 			
 			
 			// setup restart button
-			this.autoupdRestartBtn.validateNow();
 			this.autoupdRestartBtn.setActualSize(_settings.autoupdRestartBtn.width, _settings.autoupdRestartBtn.height);
 			this.autoupdRestartBtn.addEventListener(MouseEvent.CLICK, this.restartClick);
 			this.autoupdRestartBtn.label = _settings.autoupdRestartBtn.label;
 			
 			// setup close button
-			this.autoupdCloseBtn.validateNow();
 			this.autoupdCloseBtn.setActualSize(_settings.autoupdCloseBtn.width, _settings.autoupdCloseBtn.height);
 			this.autoupdCloseBtn.addEventListener(MouseEvent.CLICK, this.cancelClick);
 			this.autoupdCloseBtn.label = _settings.autoupdCloseBtn.label;
@@ -170,8 +168,7 @@
 		}
 		
 		private function restartClick(e: MouseEvent): void {
-			this.as_writeFilesText("Restart clicked<br>");
-			//dbg();
+			this.onRestartClicked();
 		}
 
 		override protected function onPopulate(): void {

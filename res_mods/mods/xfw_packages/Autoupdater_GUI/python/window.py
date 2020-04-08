@@ -90,8 +90,8 @@ class AutoupdaterLobbyWindow(AutoupdaterLobbyWindowMeta):
     def setTitle(self, title):
         self.as_setTitleS(title)
     
-    def dbg(self):
-        print 'AUTOUPD DBG'
+    def onRestartClicked(self, *args):
+        BigWorld.wg_quitAndStartLauncher()
     
     def setExpTime(self, text):
         self.as_setExpTimeS(text)
@@ -401,7 +401,7 @@ class WindowCommon:
         simpleDialog._submit(*args, **kw)
     
     def createDialogs(self, key, updated):
-        func = lambda proceed: BigWorld.wg_quitAndStartLauncher() if proceed else None
+        func = self.onRestartClicked if proceed else None
         
         messages_titles = {
             'delete' : (g_AUGUIShared.getMsg('warn'),              g_AUGUIShared.getErrMsg('DELETE_FILE')),
