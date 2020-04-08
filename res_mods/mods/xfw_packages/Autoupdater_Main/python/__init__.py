@@ -51,6 +51,7 @@ class Autoupdater:
         
         self.module = xfwnative.load_native(self.MOD_ID, 'AUGetter.pyd', 'AUGetter')
         if not self.module:
+            print 'fail: LOAD_NATIVE'
             g_AUShared.fail('LOAD_NATIVE')
             return
         
@@ -185,11 +186,10 @@ class Autoupdater:
         
         self.delFiles(toDelete)
         
-        updated_deps = self.getFiles(True)
-        updated_mods = self.getFiles(False)
+        # get dependencies and mods files
+        self.getFiles()
         
-        updated = updated_mods + updated_deps
-        
+    def onModsUpdated(self, updated):
         key = None
         
         if self.deleteAfterFini:
@@ -232,7 +232,7 @@ class Autoupdater:
                 except Exception:
                     g_AUShared.undeletedPaths.append(path)
                     g_AUShared.logger.log('Unable to delete directory %s'%(path))
-                    g_AUShared.fail('DELETING_FILE')
+                    g_AUShared.fail('DELETE_FILE')
                     break
             #else:
             #    g_AUShared.logger.log('Directory %s is not empty'%(path))
@@ -246,26 +246,26 @@ class Autoupdater:
         
         g_AUEvents.onDeletingDone(deleted, paths_count)
     
-    def getFiles(self, isDependency):
-        if not g_AUShared.check(): return 0
+    def getFiles(self):
+        if not g_AUShared.check(): return
         
-        mods = g_AUShared.mods if not isDependency else g_AUShared.dependencies
-        print 'mods is', mods
-        self.module.get_files(
-            self.ID,
-            mods,
-            g_AUEvents.onFilesProcessingStart,
-            g_AUEvents.onModFilesProcessingStart,
-            g_AUEvents.onModFilesProcessingDone,
-            g_AUEvents.onFilesProcessingDone,
+        mods = g_AUShared.mods.copy()
+        mods.update(g_AUShared.dependencies)
+        
+        mods_count = len(
+            filter(
+                lambda mod: mod.needToUpdate['ID'],
+                mods.values()
+            )
         )
-        
-        return 0
-        """
-        mods_count = len(filter(lambda mod: mod.needToUpdate['ID'], mods.values()))
         
         g_AUEvents.onFilesProcessingStart(mods_count)
         
+        err = self.module.get_files(mods_count)
+        if err:
+            print 'module returned', NativeError[err] if err in xrange(len(NativeError)) else err
+        
+        """
         updated = 0
         for modID in mods:
             mod = mods[modID]
@@ -286,7 +286,7 @@ class Autoupdater:
         
         g_AUEvents.onFilesProcessingDone()
         
-        return updated"""
+        self.onModsUpdated(updated)"""
     
     def hookFini(self):
         if self.finiHooked: return

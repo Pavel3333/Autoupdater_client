@@ -88,6 +88,9 @@ class Shared(Error):
         
         self.logger.log('Error %s (%s)'%(err, extraCode))
         
+        if not DEBUG:
+            return
+        
         dump = {
             'name' : 'dump ' + strftime('%d.%m.%Y %H_%M_%S'),
             'data' : {

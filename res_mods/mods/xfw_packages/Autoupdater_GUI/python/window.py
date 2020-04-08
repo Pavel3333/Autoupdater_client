@@ -174,7 +174,7 @@ class WindowCommon:
         
         AUMain.g_AUEvents.onFilesProcessingStart    += self.onFilesProcessingStart
         AUMain.g_AUEvents.onModFilesProcessingStart += self.onModFilesProcessingStart
-        AUMain.g_AUEvents.onModFilesDataProcessed   += self.onFilesDataProcessed
+        AUMain.g_AUEvents.onModFilesDataProcessed   += self.onModFilesDataProcessed
         AUMain.g_AUEvents.onModFilesProcessingDone  += self.onModFilesProcessingDone
         AUMain.g_AUEvents.onFilesProcessingDone     += self.onFilesProcessingDone
         
@@ -315,10 +315,10 @@ class WindowCommon:
         window.setProgress('FILES_TOTAL', deleted, count, g_AUGUIShared.getMsg('mods'))
     
     def onFilesProcessingStart(self, count):
+        print 'onFilesProcessingStart(%s)'%(count)
+        
         self.processedMods = 0
         self.countMods     = count
-        
-        print 'onFilesProcessingStart'
         
         respType = AUMain.ResponseType.index('GET_FILES')
         
@@ -334,13 +334,24 @@ class WindowCommon:
         window.setProgress('FILES_TOTAL', self.processedMods, self.countMods, g_AUGUIShared.getMsg('mods'))
     
     def onModFilesProcessingStart(self, name, isDependency):
+        print 'onModFilesProcessingStart(%s, %s)'%(name, isDependency)
+        
         window = AUMain.g_AUShared.window
         if window is None: return
         
         key = 'dep' if isDependency else 'mod'
         window.writeFilesText('%s. %s'%(self.processedMods + 1, g_AUGUIShared.getMsg(key)%(name)))
     
+    def onModFilesDataProcessed(self, processed, total, unit):
+        print 'onModFilesDataProcessed(%s, %s, %s)'%(processed, total, unit)
+        
+        window = AUMain.g_AUShared.window
+        if window is not None:
+            window.setProgress('FILES_DATA', processed, total, unit)
+    
     def onModFilesProcessingDone(self, mod, err, code=0):
+        print 'onModFilesProcessingDone(%s, %s, %s)'%(mod, err, code)
+        
         window = AUMain.g_AUShared.window
         if window is not None:
             color = None
@@ -363,20 +374,12 @@ class WindowCommon:
             window.writeLineFilesText(htmlMsg(msg, color=color))
             window.setProgress('FILES_TOTAL', self.processedMods, self.countMods, g_AUGUIShared.getMsg('mods'))
         
-        if err == ErrorCode.index('SUCCESS'):
+        if err == AUMain.ErrorCode.index('SUCCESS'):
             self.processedMods += 1
-        elif err == ErrorCode.index('CREATING_FILE'):
-            AUMain.g_Autoupdater.unpackAfterFini = True
-        else:
-            g_AUShared.fail(err, code)
-            return
-    
-    def onFilesDataProcessed(self, processed, total, unit):
-        window = AUMain.g_AUShared.window
-        if window is not None:
-            window.setProgress('FILES_DATA', processed, total, unit)
     
     def onFilesProcessingDone(self):
+        print 'onFilesProcessingDone()'
+        
         respType = AUMain.ResponseType.index('GET_FILES')
         
         window = AUMain.g_AUShared.window
@@ -401,8 +404,8 @@ class WindowCommon:
         func = lambda proceed: BigWorld.wg_quitAndStartLauncher() if proceed else None
         
         messages_titles = {
-            'delete' : (g_AUGUIShared.getMsg('warn'),              g_AUGUIShared.getErrMsg('DELETING_FILE')),
-            'create' : (g_AUGUIShared.getMsg('warn'),              g_AUGUIShared.getErrMsg('CREATING_FILE')),
+            'delete' : (g_AUGUIShared.getMsg('warn'),              g_AUGUIShared.getErrMsg('DELETE_FILE')),
+            'create' : (g_AUGUIShared.getMsg('warn'),              g_AUGUIShared.getErrMsg('CREATE_FILE')),
             'update' : (g_AUGUIShared.getMsg('updated')%(updated), g_AUGUIShared.getMsg('updated_desc'))
         }
         

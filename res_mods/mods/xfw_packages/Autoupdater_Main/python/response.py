@@ -8,7 +8,7 @@ from os      import makedirs
 from os.path import exists
 from struct  import unpack
 
-__all__ = ('Response', 'ModsListResponse', 'DepsResponse', 'FilesResponse')
+__all__ = ('Response', 'ModsListResponse', 'DepsResponse')
 
 class Response(StreamPacket):
     __slots__ = {'failed', 'code', 'type', 'total_length'}
@@ -38,7 +38,7 @@ class Response(StreamPacket):
         self.total_length = self.parse('I', 4)[0]
         self.code         = self.parse('B', 1)[0]
         
-        if self.total_length < 3:
+        if self.total_length < 5:
             self.fail('RESP_TOO_SMALL')
             return
     
@@ -151,7 +151,7 @@ class DepsResponse(Response):
     
     def slots(self):
         return super(DepsResponse, self).slots() | self.__slots__
-            
+"""
 class FilesResponse(Response):
     __slots__ = {'files_count'}
     
@@ -181,14 +181,14 @@ class FilesResponse(Response):
                 self.fail('INVALID_FILE_SIZE')
                 return
             
-            path = self.read(path_len)
             file_data = self.read(file_size)
+            path      = self.read(path_len)
             
             try:
                 with open('./' + path, 'wb') as fil:
                     fil.write(file_data)
             except:
-                self.fail('CREATING_FILE')
+                self.fail('CREATE_FILE')
                 
                 filename_pos = path.rfind('/')
                 trimmed_path = path if filename_pos == -1 else path[:filename_pos + 1]
@@ -203,3 +203,4 @@ class FilesResponse(Response):
     
     def slots(self):
         return super(FilesResponse, self).slots() | self.__slots__
+"""

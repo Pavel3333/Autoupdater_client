@@ -1,4 +1,4 @@
-__all__ = ('LangID', 'AUTH_REALM', 'getLangID', 'DEBUG', 'ErrorCode', 'WarningCode', 'ResponseType', 'DataUnits', 'StatusType', 'ProgressType', 'Error', 'getKey', 'getJSON', 'checkSeqs', 'Constants', 'Directory', 'Paths', 'getLevels', 'Event', 'DeleteExclude', 'Mod')
+__all__ = ('LangID', 'AUTH_REALM', 'getLangID', 'DEBUG', 'ErrorCode', 'WarningCode', 'ResponseType', 'NativeError', 'DataUnits', 'StatusType', 'ProgressType', 'Error', 'getKey', 'getJSON', 'checkSeqs', 'Constants', 'Directory', 'Paths', 'getLevels', 'Event', 'DeleteExclude', 'Mod')
 
 LangID = (
     'RU',
@@ -19,29 +19,33 @@ def getLangID():
 DEBUG = True
 
 ErrorCode = (
-    'SUCCESS',           # 0
-    'TRANSLATIONS',      # 1
-    'CONFIG',            # 2
-    'LOAD_XFW_NATIVE',   # 3
-    'UNPACK_NATIVE',     # 4
-    'LOAD_NATIVE',       # 5
-    'CHECKING_ID',       # 6
-    'FILES_NOT_FOUND',   # 7
-    'LIC_INVALID',       # 8
-    'CONNECT',           # 9
-    'RESP_TOO_SMALL',    # 10
-    'RESP_SIZE_INVALID', # 11
-    'GETTING_MODS',      # 12
-    'READING_MODS',      # 13
-    'GETTING_DEPS',      # 14
-    'READING_DEPS',      # 15
-    'GETTING_FILES',     # 16
-    'INVALID_PATH_LEN',  # 17
-    'INVALID_FILE_SIZE', # 18
-    'CREATING_FILE',     # 19
-    'GET_MOD_FIELDS',    # 20
-    'DECODE_MOD_FIELDS', # 21
-    'DELETING_FILE'      # 22
+    'SUCCESS',            # 0
+    'TRANSLATIONS',       # 1
+    'CONFIG',             # 2
+    'LOAD_XFW_NATIVE',    # 3
+    'UNPACK_NATIVE',      # 4
+    'LOAD_NATIVE',        # 5
+    'CHECKING_ID',        # 6
+    'FILES_NOT_FOUND',    # 7
+    'LIC_INVALID',        # 8
+    'CONNECT',            # 9
+    'RESP_TOO_SMALL',     # 10
+    'RESP_SIZE_INVALID',  # 11
+    'GETTING_MODS',       # 12
+    'READING_MODS',       # 13
+    'GETTING_DEPS',       # 14
+    'READING_DEPS',       # 15
+    'GETTING_FILES',      # 16
+    'INVALID_PATH_LEN',   # 17
+    'INVALID_FILE_SIZE',  # 18
+    'CREATE_FILE',        # 19
+    'CREATE_MANUAL_FILE', # 20
+    'GET_MOD_FIELDS',     # 21
+    'DECODE_MOD_FIELDS',  # 22
+    'DELETE_FILE',        # 23
+    # native module errors
+    'CURL_GINIT',         # 24
+    'CURL_EINIT'          # 25
 )
 
 WarningCode = {
@@ -58,6 +62,25 @@ ResponseType = (
     'GET_DEPS',      # 1
     'DEL_FILES',     # 2
     'GET_FILES'      # 3
+)
+
+NativeError = (
+    'E_Success',
+    # main errors
+    'E_Main_FailInit',
+    # network errors
+    'E_Net_FailGInit',
+    'E_Net_FailEInit',
+    'E_Net_UnknStep',
+    'E_Net_FailRecv',
+    'E_Net_TooSmall',
+    'E_Net_ServerErr',
+    # GetFiles errors
+    'E_Net_GF_InvalidPathLen',
+    'E_Net_GF_InvalidFileSize',
+    'E_Net_GF_CreateManualFile',
+    
+    'E_SIZE'
 )
 
 DataUnits = (
@@ -157,7 +180,7 @@ Directory = {
 Directory.update({
     'FAIL_DIR'   : Directory['MOD_DIR'] + 'manual/',
     'DUMP_DIR'   : Directory['MOD_DIR'] + 'dumps/',
-    'X86_DIR'    : './win32/'
+    'X86_DIR'    : 'win32/'
 })
 
 class Paths:

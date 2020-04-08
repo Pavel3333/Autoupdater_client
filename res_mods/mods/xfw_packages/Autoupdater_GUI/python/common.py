@@ -14,10 +14,13 @@ SimpleErr = frozenset(map(AUMain.ErrorCode.index, {
     'RESP_SIZE_INVALID',
     'READING_MODS',
     'READING_DEPS',
-    'CREATING_FILE',
+    'CREATE_FILE',
+    'CREATE_MANUAL_FILE',
     'GET_MOD_FIELDS',
     'DECODE_MOD_FIELDS',
-    'DELETING_FILE'
+    'DELETE_FILE',
+    'CURL_GINIT',
+    'CURL_EINIT'
 }))
 
 FormatErr = frozenset(map(AUMain.ErrorCode.index, {
