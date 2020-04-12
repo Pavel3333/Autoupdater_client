@@ -190,8 +190,6 @@ class Autoupdater:
         self.getFiles()
         
     def onModsUpdated(self, updated):
-        key = None
-        
         if self.deleteAfterFini:
             key = 'delete'
             self.hookFini()
@@ -200,8 +198,10 @@ class Autoupdater:
             self.hookFini()
         elif updated:
             key = 'update'
+        else:
+            return
         
-        g_AUShared.createDialogs(key, updated)
+        g_AUShared.createDialogs(key)
     
     def delFiles(self, paths):
         if not g_AUShared.check(): return 0

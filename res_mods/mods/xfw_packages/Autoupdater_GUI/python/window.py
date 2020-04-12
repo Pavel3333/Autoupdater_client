@@ -400,13 +400,13 @@ class WindowCommon:
         simpleDialog = SimpleDialog()
         simpleDialog._submit(*args, **kw)
     
-    def createDialogs(self, key, updated):
-        func = self.onRestartClicked if proceed else None
+    def createDialogs(self, key):
+        func = self.onRestartClicked if self.processedMods else None
         
         messages_titles = {
             'delete' : (g_AUGUIShared.getMsg('warn'),              g_AUGUIShared.getErrMsg('DELETE_FILE')),
             'create' : (g_AUGUIShared.getMsg('warn'),              g_AUGUIShared.getErrMsg('CREATE_FILE')),
-            'update' : (g_AUGUIShared.getMsg('updated')%(updated), g_AUGUIShared.getMsg('updated_desc'))
+            'update' : (g_AUGUIShared.getMsg('updated')%(self.processedMods), g_AUGUIShared.getMsg('updated_desc'))
         }
         
         if key is not None:

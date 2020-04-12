@@ -184,33 +184,25 @@ class Shared:
         return result
     
     def handleErr(self, respType, err, code):
-        if respType not in map(AUMain.ResponseType.index, {
-            'GET_MODS_LIST',
-            'GET_DEPS'
-            }):
-            return
-        
         if isinstance(err, int) and err in xrange(len(AUMain.ErrorCode)):
             err = AUMain.ErrorCode[err]
         
         if err == 'SUCCESS':
             return
         
-        if code in AUMain.WarningCode.values():
-            msg = self.getWarnMsg(code)
-            if err == 'GETTING_MODS':
-                code_key = {
-                    'USER_NOT_FOUND' : 'subscribe',
-                    'TIME_EXPIRED'   : 'renew'
-                }
-                
-                if code in map(AUMain.WarningCode.__getitem__, code_key):
-                    key = code_key[code]
-                    
-                    self.createDialog(title=self.getMsg('warn'), message=msg, submit=self.getMsg(key), close=self.getMsg('close'), url='https://pavel3333.ru/trajectorymod/lk')
-        else:
-            msg = self.getMsg('unexpected')%(err, code)
+        msg = self.handleServerErr(err, code)
+        
+        if err == 'GETTING_MODS':
+            code_key = {
+                'USER_NOT_FOUND' : 'subscribe',
+                'TIME_EXPIRED'   : 'renew'
+            }
             
+            if code in map(AUMain.WarningCode.__getitem__, code_key):
+                key = code_key[code]
+                
+                self.createDialog(title=self.getMsg('warn'), message=msg, submit=self.getMsg(key), close=self.getMsg('close'), url='https://pavel3333.ru/trajectorymod/lk')
+        
         err_status = {
             'GETTING_MODS' : 'MODS_LIST',
             'GETTING_DEPS' : 'DEPS'
@@ -220,9 +212,11 @@ class Shared:
             window.setStatus(err_status[err], htmlMsg(self.getMsg('warn') + ' ' + msg, color='ff0000'))
     
     def handleServerErr(self, err, code):
-        if code in AllErr:
+        if code in AUMain.WarningCode.values():
+            return self.getWarnMsg(code)
+        elif err in AllErr:
             msg = self.getErrMsg(err)
-            if code in FormatErr:
+            if err in FormatErr:
                 msg = msg%(code)
             return msg
         return self.getMsg('unexpected')%(err, code)
