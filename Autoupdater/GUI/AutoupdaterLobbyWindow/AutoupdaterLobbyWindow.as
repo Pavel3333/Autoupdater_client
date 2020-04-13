@@ -60,7 +60,6 @@
 				this.modsListPrBar.setData(modsListPrBarVO);
 			}
 			
-			
 			this.filesTextScrollBar.scrollTarget = this.filesText;
 			this.filesTextScrollBar.height       = this.filesText.height;
 			this.filesTextScrollBar.x            = this.filesText.x + this.filesText.width;
@@ -89,7 +88,6 @@
 			if (filesTotalPrBarVO.value > 0) {
 				this.filesTotalPrBar.setData(filesTotalPrBarVO);
 			}
-			
 			
 			// setup restart button
 			this.autoupdRestartBtn.setActualSize(_settings.autoupdRestartBtn.width, _settings.autoupdRestartBtn.height);
@@ -127,16 +125,17 @@
 			switch(progressType) {
 				case 0:
 					this.modsListPrBarVO.value = value;
+				    this.modsListPrBar.setData(modsListPrBarVO);
 				    break;
 				case 1:
 					this.filesDataPrBarVO.value = value;
+				    this.filesDataPrBar.setData(filesDataPrBarVO);
 				    break;
 				case 2:
 					this.filesTotalPrBarVO.value = value;
+				    this.filesTotalPrBar.setData(filesTotalPrBarVO);
 				    break;
 			}
-			
-			this.modsListPrBar.setData(modsListPrBarVO);
 		}
 		
 		public function as_setProgress(progressType: int, text:String, value: int): void {
