@@ -243,7 +243,8 @@ class Mod(Error):
     
         self.needToUpdate = { # Updating only files
             'ID'   : set(),
-            'file' : set()
+            'file' : set(),
+            'dir'  : set()
         }
         self.needToDelete = { # Deleting files and directories
             'file' : set(),
@@ -284,8 +285,6 @@ class Mod(Error):
                         self.needToUpdate['file'].add(subpath)
                     continue
                 elif not self.enabled:
-                    #if subpath not in self.needToDelete['file']:
-                    #    print 'delete', subpath
                     self.needToDelete['file'].add(subpath)
                     continue
                 
@@ -297,14 +296,12 @@ class Mod(Error):
                     self.needToUpdate['file'].add(subpath)
             else:
                 if self.enabled and not exists(subpath):
-                    makedirs(subpath)
+                    print 'dir not exists:', subpath
+                    self.needToUpdate['dir'].add(subpath)
+                elif not self.enabled and exists(subpath):
+                    self.needToDelete['dir'].add(subpath)
                     
                 self.parseTree(subpath + '/', curr_dic[ID])
-                
-                if not self.enabled:
-                    #if subpath not in self.needToDelete['dir']:
-                    #    print 'del dir', subpath
-                    self.needToDelete['dir'].add(subpath)
     
     def slots(self):
         return self.__slots__ - {'needToUpdate', 'needToDelete'}

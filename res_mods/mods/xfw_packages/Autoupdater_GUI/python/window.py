@@ -315,8 +315,6 @@ class WindowCommon:
         window.setProgress('FILES_TOTAL', deleted, count, g_AUGUIShared.getMsg('mods'))
     
     def onFilesProcessingStart(self, count):
-        print 'onFilesProcessingStart(%s)'%(count)
-        
         self.processedMods = 0
         self.countMods     = count
         
@@ -334,24 +332,19 @@ class WindowCommon:
         window.setProgress('FILES_TOTAL', self.processedMods, self.countMods, g_AUGUIShared.getMsg('mods'))
     
     def onModFilesProcessingStart(self, name, isDependency):
-        print 'onModFilesProcessingStart(%s, %s)'%(name, isDependency)
-        
         window = AUMain.g_AUShared.window
         if window is None: return
         
         key = 'dep' if isDependency else 'mod'
         window.writeFilesText('%s. %s'%(self.processedMods + 1, g_AUGUIShared.getMsg(key)%(name)))
+        window.setRawProgress('FILES_DATA', 0)
     
     def onModFilesDataProcessed(self, processed, total, unit):
-        print 'onModFilesDataProcessed(%s, %s, %s)'%(processed, total, unit)
-        
         window = AUMain.g_AUShared.window
         if window is not None:
             window.setProgress('FILES_DATA', processed, total, unit)
     
     def onModFilesProcessingDone(self, mod, err, code=0):
-        print 'onModFilesProcessingDone(%s, %s, %s)'%(mod, err, code)
-        
         window = AUMain.g_AUShared.window
         if window is not None:
             color = None
@@ -372,14 +365,13 @@ class WindowCommon:
                 msg = g_AUGUIShared.handleServerErr(err, code)
             
             window.writeLineFilesText(htmlMsg(msg, color=color))
+            window.setRawProgress('FILES_DATA', 100)
             window.setProgress('FILES_TOTAL', self.processedMods, self.countMods, g_AUGUIShared.getMsg('mods'))
         
         if err == AUMain.ErrorCode.index('SUCCESS'):
             self.processedMods += 1
     
     def onFilesProcessingDone(self):
-        print 'onFilesProcessingDone()'
-        
         respType = AUMain.ResponseType.index('GET_FILES')
         
         window = AUMain.g_AUShared.window
@@ -401,11 +393,11 @@ class WindowCommon:
         simpleDialog._submit(*args, **kw)
     
     def createDialogs(self, key):
-        func = self.onRestartClicked if self.processedMods else None
+        func = lambda proceed: BigWorld.wg_quitAndStartLauncher() if proceed else None
         
         messages_titles = {
-            'delete' : (g_AUGUIShared.getMsg('warn'),              g_AUGUIShared.getErrMsg('DELETE_FILE')),
-            'create' : (g_AUGUIShared.getMsg('warn'),              g_AUGUIShared.getErrMsg('CREATE_FILE')),
+            'delete' : (g_AUGUIShared.getMsg('warn'),                         g_AUGUIShared.getErrMsg('DELETE_FILE')),
+            'create' : (g_AUGUIShared.getMsg('warn'),                         g_AUGUIShared.getErrMsg('CREATE_FILE')),
             'update' : (g_AUGUIShared.getMsg('updated')%(self.processedMods), g_AUGUIShared.getMsg('updated_desc'))
         }
         

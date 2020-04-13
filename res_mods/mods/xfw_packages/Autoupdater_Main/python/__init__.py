@@ -123,7 +123,10 @@ class Autoupdater:
             'disabled' : set()
         }
         
-        toUpdate = set()
+        toUpdate = {
+            'file' : set(),
+            'dir'  : set()
+        }
         toDelete = {
             'file' : set(),
             'dir'  : set()
@@ -138,7 +141,8 @@ class Autoupdater:
             
             dependencies['enabled' if mod.enabled else 'disabled'].update(mod.dependencies)
             
-            toUpdate.update(mod.needToUpdate['file'])
+            toUpdate['file'].update(mod.needToUpdate['file'])
+            toUpdate['dir'].update(mod.needToUpdate['dir'])
             toDelete['file'].update(mod.needToDelete['file'])
             toDelete['dir'].update(mod.needToDelete['dir'])
         
@@ -171,18 +175,21 @@ class Autoupdater:
                 return
             dependency.parseTree('./', dependency.tree)
             
-            toUpdate.update(dependency.needToUpdate['file'])
+            toUpdate['file'].update(dependency.needToUpdate['file'])
+            toUpdate['dir'].update(dependency.needToUpdate['dir'])
             toDelete['file'].update(dependency.needToDelete['file'])
             toDelete['dir'].update(dependency.needToDelete['dir'])
         
-        toDelete['file'] -= DeleteExclude['file'] | toUpdate
-        toDelete['dir']  -= DeleteExclude['dir']
+        toDelete['file'] -= DeleteExclude['file'] | toUpdate['file']
+        toDelete['dir']  -= DeleteExclude['dir']  | toUpdate['dir']
         
         toDelete['dir'] = sorted(
             toDelete['dir'],
             key = getLevels,
             reverse = True
         )
+        
+        print 'toDelete:', toDelete
         
         self.delFiles(toDelete)
         
