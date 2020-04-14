@@ -23,7 +23,8 @@ class StreamPacket(Error):
         try:
             self.conn = urlopen(url, urldata)
         except:
-            self.conn = None
+            self.fail('CONNECT')
+            return
         
         self.chunk           = ''
         self.debug_data      = ''
@@ -51,5 +52,3 @@ class StreamPacket(Error):
     def __del__(self):
         if self.conn is not None:
             self.conn.close()
-            self.conn = None
-        self.chunk = ''

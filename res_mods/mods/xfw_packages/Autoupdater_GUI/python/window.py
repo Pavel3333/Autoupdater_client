@@ -234,7 +234,7 @@ class WindowCommon:
         if window is not None:
             window.setProgress('MODS_LIST_DATA', processed, total, unit)
     
-    def onModsProcessingDone(self, exp_time):
+    def onModsProcessingDone(self):
         respType = AUMain.ResponseType.index('GET_MODS_LIST')
         
         window = AUMain.g_AUShared.window
@@ -247,6 +247,7 @@ class WindowCommon:
         window.setStatus('MODS_LIST', htmlMsg(status, color='228b22'))
         window.setRawProgress('MODS_LIST_DATA', 100)
         
+        exp_time = AUMain.g_AUShared.exp_time
         if exp_time:
             window.setExpTime('%s %s'%(g_AUGUIShared.getMsg('expires'), g_AUGUIShared.exp_time(exp_time)))
     

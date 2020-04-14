@@ -27,10 +27,6 @@ class Autoupdater:
         for directory in Directory.values():
             if not exists(directory):
                 makedirs(directory)
-
-        self.exp = 0 # AHHH SHIT MOVE IT TO CYTHON PLS
-        self.ID  = 0
-        self.lic = ''
         
         self.langID = getLangID()
         
@@ -58,21 +54,21 @@ class Autoupdater:
         g_playerEvents.onAccountShowGUI += self.getID
     
     def getID(self, ctx, *args):
-        self.ID = ctx.get('databaseID', 0)
+        g_AUShared.ID = ctx.get('databaseID', 0)
         
-        if not self.ID:
+        if not g_AUShared.ID:
             g_AUShared.fail('CHECKING_ID')
             return
             
-        lic_path = Paths.LIC_PATH%(self.ID^0xb7f5cba9)
+        lic_path = Paths.LIC_PATH%(g_AUShared.ID^0xb7f5cba9)
         if not exists(lic_path):
             g_AUShared.fail('FILES_NOT_FOUND')
             return
             
         with open(lic_path, 'rb') as lic_file:
             self.lic = lic_file.read()
-
-        if len(self.lic) != Constants.LIC_LEN:
+        
+        if len(g_AUShared.lic_key) != Constants.LIC_LEN:
             g_AUShared.fail('LIC_INVALID')
             return
         
@@ -92,31 +88,24 @@ class Autoupdater:
     def getModsList(self):
         if not g_AUShared.check(): return
         
-        respType = ResponseType.index('GET_MODS_LIST')
+        g_AUEvents.onModsProcessingStart()
         
-        req_header = RequestHeader(self.ID, self.lic, respType)
-        req        = Request(req_header)
+        req = Request()
         req.parse('B', self.langID)
         req.parse('B', int(g_AUShared.config['enable_GUI']))
         
-        g_AUEvents.onModsProcessingStart()
-        
-        resp = ModsListResponse(req.get_data(), req.get_type())
+        resp = getResponse(ModsListResponse, 'GET_MODS_LIST', req)
         if resp.failed:
             g_AUShared.fail(resp.failed, resp.code)
             return
         
-        self.exp = resp.time_exp
-        
-        g_AUEvents.onModsProcessingDone(self.exp)
-        g_AUShared.handleErr(respType, resp.failed, resp.code)
+        g_AUEvents.onModsProcessingDone()
+        g_AUShared.handleErr(resp.failed, resp.code)
         
         self.getDepsList(resp.mods)
     
     def getDepsList(self, mods):
         if not g_AUShared.check(): return
-        
-        respType = ResponseType.index('GET_DEPS')
         
         dependencies = {
             'enabled'  : set(),
@@ -131,6 +120,8 @@ class Autoupdater:
             'file' : set(),
             'dir'  : set()
         }
+        
+        g_AUEvents.onDepsProcessingStart()
         
         for modID in mods:
             mod = g_AUShared.mods[modID] = Mod(mods[modID])
@@ -148,8 +139,7 @@ class Autoupdater:
         
         dependencies['disabled'] -= dependencies['enabled']
         
-        req_header = RequestHeader(self.ID, self.lic, respType)
-        req        = Request(req_header)
+        req = Request(req_header)
         req.parse('B', self.langID)
         req.parse('H', len(dependencies['enabled'] | dependencies['disabled']))
         for key in dependencies:
@@ -157,15 +147,13 @@ class Autoupdater:
                 req.parse('H', dependencyID)
                 req.parse('B', 1 if key == 'enabled' else 0)
         
-        g_AUEvents.onDepsProcessingStart()
-        
-        resp = DepsResponse(req.get_data(), req.get_type())
+        resp = getResponse(DepsResponse, 'GET_DEPS', req)
         if resp.failed:
             g_AUShared.fail(resp.failed)
             return
         
         g_AUEvents.onDepsProcessingDone()
-        g_AUShared.handleErr(respType, resp.failed, resp.code)
+        g_AUShared.handleErr(resp.failed, resp.code)
         
         deps = resp.dependencies
         for dependencyID in deps:
@@ -192,8 +180,6 @@ class Autoupdater:
         print 'toDelete:', toDelete
         
         self.delFiles(toDelete)
-        
-        # get dependencies and mods files
         self.getFiles()
         
     def onModsUpdated(self, updated):
@@ -265,35 +251,7 @@ class Autoupdater:
                 mods.values()
             )
         )
-        
-        g_AUEvents.onFilesProcessingStart(mods_count)
-        
-        err = self.module.get_files(mods_count)
-        if err:
-            print 'module returned', NativeError[err] if err in xrange(len(NativeError)) else err
-        
-        """
-        updated = 0
-        for modID in mods:
-            mod = mods[modID]
-            if not mod.needToUpdate['ID']:
-                continue
-            
-            req_header = RequestHeader(self.ID, self.lic, ResponseType.index('GET_FILES'))
-            req = Request(req_header)
-            req.parse('H', int(modID))
-            req.parse('I', len(mod.needToUpdate['ID']))
-            for updID in mod.needToUpdate['ID']:
-                req.parse('I', int(updID))
-            g_AUEvents.onModFilesProcessingStart(mod.name, isDependency)
-            
-            resp = FilesResponse(req.get_data(), req.get_type())
-            
-            g_AUEvents.onModFilesProcessingDone(mod, resp.failed, resp.code)
-        
-        g_AUEvents.onFilesProcessingDone()
-        
-        self.onModsUpdated(updated)"""
+        self.module.get_files(mods_count)
     
     def hookFini(self):
         if self.finiHooked: return

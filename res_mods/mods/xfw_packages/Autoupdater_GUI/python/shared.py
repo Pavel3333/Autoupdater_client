@@ -87,7 +87,8 @@ class Shared:
                 "LIC_INVALID"        : "License key is invalid",
                 "CONNECT"            : "Unable to connect to the server",
                 "RESP_TOO_SMALL"     : "An error occured: getted empty response",
-                "RESP_SIZE_INVALID"  : "An error occured: getted invalid response",
+                "RESP_INVALID"       : "An error occured: getted invalid response",
+                "TOKEN_EXPIRED"      : "Unable to prolong the token. Please contact us",
                 "GETTING_MODS"       : "An error occured while getting mod list. Error code %s",
                 "READING_MODS"       : "An error occured while reading mod list",
                 "GETTING_DEPS"       : "An error occured while getting dependencies list. Error code %s",
@@ -103,12 +104,10 @@ class Shared:
                 "CURL_EINIT"         : "CURL initialization failed. Error code %s. They will be deleted after game restart"
             },
             "msg_warn" : {
-                "CHECKING_ID"      : "Unable to check player ID",
-                "LIC_INVALID"      : "Invalid license key",
-                "ID_NOT_FOUND"     : "ID was not found",
-                "USER_NOT_FOUND"   : "You are not subscribed to Autoupdater.<br>You can subscribe it on \"https://pavel3333.ru/trajectorymod/lk\"",
-                "TIME_EXPIRED"     : "Autoupdater subscription has expired.<br >You can renew the subscription on \"https://pavel3333.ru/trajectorymod/lk\"",
-                "MOD_NOT_FOUND"    : "Mod was not found"
+                "CHECK_ID"         : "ID was not found",
+                "GET_USER_DATA"    : "You are not subscribed to Autoupdater.<br>You can subscribe it on \"https://pavel3333.ru/trajectorymod/lk\"",
+                "EXPIRED"          : "Autoupdater subscription has expired.<br >You can renew the subscription on \"https://pavel3333.ru/trajectorymod/lk\"",
+                "GET_MOD_DESC"     : "Mod was not found"
             },
             "titles" : {
                 "main" : AUMain.Constants.MOD_NAME,
@@ -183,7 +182,7 @@ class Shared:
             raise KeyError('getTitle: respType is None')
         return result
     
-    def handleErr(self, respType, err, code):
+    def handleErr(self, err, code):
         if isinstance(err, int) and err in xrange(len(AUMain.ErrorCode)):
             err = AUMain.ErrorCode[err]
         
@@ -194,8 +193,8 @@ class Shared:
         
         if err == 'GETTING_MODS':
             code_key = {
-                'USER_NOT_FOUND' : 'subscribe',
-                'TIME_EXPIRED'   : 'renew'
+                'GET_USER_DATA' : 'subscribe',
+                'EXPIRED'       : 'renew'
             }
             
             if code in map(AUMain.WarningCode.__getitem__, code_key):

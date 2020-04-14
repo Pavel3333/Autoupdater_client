@@ -1,4 +1,4 @@
-__all__ = ('LangID', 'AUTH_REALM', 'getLangID', 'DEBUG', 'ErrorCode', 'WarningCode', 'ResponseType', 'NativeError', 'DataUnits', 'StatusType', 'ProgressType', 'Error', 'getKey', 'getJSON', 'checkSeqs', 'Constants', 'Directory', 'Paths', 'getLevels', 'Event', 'DeleteExclude', 'Mod')
+__all__ = ('LangID', 'AUTH_REALM', 'getLangID', 'DEBUG', 'ErrorCode', 'WarningCode', 'ResponseType', 'DataUnits', 'StatusType', 'ProgressType', 'Error', 'getKey', 'getJSON', 'checkSeqs', 'Constants', 'Directory', 'Paths', 'getLevels', 'Event', 'DeleteExclude', 'Mod')
 
 LangID = (
     'RU',
@@ -30,31 +30,46 @@ ErrorCode = (
     'LIC_INVALID',        # 8
     'CONNECT',            # 9
     'RESP_TOO_SMALL',     # 10
-    'RESP_SIZE_INVALID',  # 11
-    'GETTING_MODS',       # 12
-    'READING_MODS',       # 13
-    'GETTING_DEPS',       # 14
-    'READING_DEPS',       # 15
-    'GETTING_FILES',      # 16
-    'INVALID_PATH_LEN',   # 17
-    'INVALID_FILE_SIZE',  # 18
-    'CREATE_FILE',        # 19
-    'CREATE_MANUAL_FILE', # 20
-    'GET_MOD_FIELDS',     # 21
-    'DECODE_MOD_FIELDS',  # 22
-    'DELETE_FILE',        # 23
+    'RESP_INVALID',       # 11
+    'TOKEN_EXPIRED',      # 12
+    'GETTING_MODS',       # 13
+    'READING_MODS',       # 14
+    'GETTING_DEPS',       # 15
+    'READING_DEPS',       # 16
+    'GETTING_FILES',      # 17
+    'INVALID_PATH_LEN',   # 18
+    'INVALID_FILE_SIZE',  # 19
+    'CREATE_FILE',        # 20
+    'CREATE_MANUAL_FILE', # 21
+    'GET_MOD_FIELDS',     # 22
+    'DECODE_MOD_FIELDS',  # 23
+    'DELETE_FILE',        # 24
     # native module errors
-    'CURL_GINIT',         # 24
-    'CURL_EINIT'          # 25
+    'CURL_GINIT',         # 25
+    'CURL_EINIT'          # 26
 )
 
 WarningCode = {
-    'CHECKING_ID'    : 7,
-    'LIC_INVALID'    : 8,
-    'ID_NOT_FOUND'   : 11,
-    'USER_NOT_FOUND' : 12,
-    'TIME_EXPIRED'   : 13,
-    'MOD_NOT_FOUND'  : 21
+    #'HTTPS'            : 1,
+    #'REQ_NOT_FOUND'    : 2,
+    #'PARSE_HDR'        : 3,
+    #'REQ_INVALID_LEN'  : 4,
+    #'PARSE_WGID'       : 5,
+    #'READ_LIC'         : 6,
+    'CHECK_ID'         : 7,
+    'GET_USER_DATA'    : 8,
+    #'READ_TOKEN'       : 9,
+    'TOKEN_EXPIRED'    : 10,
+    'EXPIRED'          : 11,
+    #'READ_CODE'        : 12,
+    #'INCORRECT_CODE'   : 13,
+    #'READ_LANG'        : 14,
+    #'READ_GUI_FLAG'    : 15,
+    #'PARSE_DEPS_COUNT' : 16,
+    #'PARSE_GF_HDR'     : 17,
+    'GET_MOD_DESC'     : 18,
+    
+    #'UNKNOWN'          : 255
 }
 
 ResponseType = (
@@ -62,25 +77,6 @@ ResponseType = (
     'GET_DEPS',      # 1
     'DEL_FILES',     # 2
     'GET_FILES'      # 3
-)
-
-NativeError = (
-    'E_Success',
-    # main errors
-    'E_Main_FailInit',
-    # network errors
-    'E_Net_FailGInit',
-    'E_Net_FailEInit',
-    'E_Net_UnknStep',
-    'E_Net_FailRecv',
-    'E_Net_TooSmall',
-    'E_Net_ServerErr',
-    # GetFiles errors
-    'E_Net_GF_InvalidPathLen',
-    'E_Net_GF_InvalidFileSize',
-    'E_Net_GF_CreateManualFile',
-    
-    'E_SIZE'
 )
 
 DataUnits = (
@@ -169,7 +165,7 @@ class Constants:
     MOD_NAME = 'Autoupdater'
     MOD_ID   = 'com.pavel3333.' + MOD_NAME
 
-    AUTOUPDATER_URL = 'http://api.pavel3333.ru/autoupdate.php'
+    AUTOUPDATER_URL = 'https://api.pavel3333.ru/autoupdate.php'
 
     LIC_LEN        = 32
     CHUNK_MAX_SIZE = 65536
@@ -188,7 +184,7 @@ class Paths:
     EXE_HELPER_PATH = Directory['X86_DIR'] + Constants.MOD_ID + '.Helper.exe'
     CONFIG_PATH     = Directory['MOD_DIR'] + 'config.json'
     DELETED_PATH    = Directory['MOD_DIR'] + 'delete.txt'
-    LOG_PATH        = Directory['MOD_DIR'] + 'log.txt'
+    LOG_PATH        = Directory['MOD_DIR'] + 'AUMain_log.txt'
 
 def getLevels(path):
     return len(filter(lambda level: bool(level), path.split('/')))

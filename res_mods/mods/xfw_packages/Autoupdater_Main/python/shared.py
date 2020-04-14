@@ -49,6 +49,11 @@ class Events:
 class Shared(Error):
     def __init__(self):
         super(Shared, self).__init__()
+        
+        self.ID       = None
+        self.lic_key  = None
+        self.exp_time = None
+        self.token    = None
     
         self.mods         = {}
         self.dependencies = {}

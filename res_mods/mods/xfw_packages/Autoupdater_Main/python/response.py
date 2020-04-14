@@ -8,21 +8,21 @@ from os      import makedirs
 from os.path import exists
 from struct  import unpack
 
-__all__ = ('Response', 'ModsListResponse', 'DepsResponse')
+__all__ = ('Response', 'ModsListResponse', 'DepsResponse', 'getResponse')
 
 class Response(StreamPacket):
-    __slots__ = {'failed', 'code', 'type', 'total_length'}
+    __slots__ = {'failed', 'code', 'type', 'total_length', 'data'}
     
-    def __init__(self, urldata, resp_type):
+    def __init__(self, urldata, resp_type, force_auth=False):
         super(Response, self).__init__(Constants.AUTOUPDATER_URL, urldata)
+        
+        if not self.check():
+            return
         
         self.code         = 0
         self.type         = resp_type
         self.total_length = 0
-        
-        if self.conn is None:
-            self.fail('CONNECT')
-            return
+        self.data         = {}
         
         types_events = {
             ResponseType.index('GET_MODS_LIST') : 'Mods',
@@ -31,9 +31,9 @@ class Response(StreamPacket):
         }
         
         if self.type in types_events:
-            self.onDataProcessed = getattr(g_AUEvents, 'on%sDataProcessed'%(types_events[self.type]))
+            self.onDataProcessed = getattr(g_AUEvents, 'on%sDataProcessed'%(types_events[self.type])) # TODO
         else:
-            raise NotImplementedError('Response type is not exists')
+            raise NotImplementedError('Response type %s is not exists', self.type)
         
         self.total_length = self.parse('I', 4)[0]
         self.code         = self.parse('B', 1)[0]
@@ -41,6 +41,20 @@ class Response(StreamPacket):
         if self.total_length < 5:
             self.fail('RESP_TOO_SMALL')
             return
+        
+        if self.code == WarningCode['TOKEN_EXPIRED']:
+            g_AUShared.token = None
+            self.fail('TOKEN_EXPIRED')
+            return
+        
+        try:
+            self.data = json.loads(self.read())
+        except:
+            self.fail('RESP_INVALID')
+            return
+        
+        if 'token' in self.data:
+            g_AUShared.token = self.data.token
     
     def getChunkSize(self):
         return len(self.chunk) - self.offset
@@ -97,110 +111,70 @@ class Response(StreamPacket):
             raise EOFError('Could not read the data')
         return unpack(fmt, data)
     
-    def div1024(self, value):
+    @staticmethod
+    def div1024(value):
         return round(float(value) / 1024, 2)
 
 class ModsListResponse(Response):
-    __slots__ = {'mods', 'time_exp'}
+    __slots__ = {'mods'}
     
     def __init__(self, *args):
         super(ModsListResponse, self).__init__(*args)
         
-        self.mods     = {}
-        self.time_exp = 0
+        if not self.check():
+            return
         
-        self.init()
+        self.mods = {}
         
-        g_AUShared.addRequest(self)
-    
-    def init(self):
         if self.code != ErrorCode.index('SUCCESS'):
             self.fail('GETTING_MODS')
             return
         
-        try:
-            self.time_exp = self.parse('I', 4)[0]
-            self.mods = json.loads(self.read())
-        except ValueError:
+        if 'exp_time' in self.data:
+            g_AUShared.exp_time = self.data['exp_time']
+        
+        if 'mods' in self.data:
+            self.mods = self.data['mods']
+        else:
             self.fail('READING_MODS')
+        
+        g_AUShared.addRequest(self)
     
     def slots(self):
         return super(ModsListResponse, self).slots() | self.__slots__
 
 class DepsResponse(Response):
-    __slots__ = {'dependencies', 'time_exp'}
+    __slots__ = {'dependencies'}
     
     def __init__(self, *args):
         super(DepsResponse, self).__init__(*args)
         
+        if not self.check():
+            return
+        
         self.dependencies = {}
         
-        self.init()
-        
-        g_AUShared.addRequest(self)
-    
-    def init(self):
         if self.code != ErrorCode.index('SUCCESS'):
             self.fail('GETTING_DEPS')
             return
         
-        try:
-            self.dependencies = json.loads(self.read())
-        except ValueError:
+        if 'deps' in self.data:
+            self.dependencies = self.data['deps']
+        else:
             self.fail('READING_DEPS')
     
     def slots(self):
         return super(DepsResponse, self).slots() | self.__slots__
-"""
-class FilesResponse(Response):
-    __slots__ = {'files_count'}
+
+def getResponse(cls, respType, req):
+    respType = ResponseType.index(respType)
+    req_header = RequestHeader(respType)
+
+    resp = cls(getRequest(req_header, req), respType)
+    if resp.failed == ErrorCode.index('TOKEN_EXPIRED'):
+        del resp
+        del req_header
+        req_header = RequestHeader(respType, force_auth=True)
+        resp = cls(getRequest(req_header, req), respType)
     
-    def __init__(self, *args):
-        super(FilesResponse, self).__init__(*args)
-        
-        self.files_count = 0
-        
-        self.init()
-        
-        g_AUShared.addRequest(self)
-    
-    def init(self):
-        if self.code != ErrorCode.index('SUCCESS'):
-            self.fail('GETTING_FILES')
-            return
-        
-        self.files_count = self.parse('I', 4)[0]
-        
-        for i in xrange(self.files_count):
-            path_len = self.parse('H', 2)[0]
-            if file_size <= 0 or file_size > self.total_length:
-                self.fail('INVALID_PATH_LEN')
-                return
-            file_size = self.parse('I', 4)[0]
-            if file_size <= 0 or file_size > self.total_length:
-                self.fail('INVALID_FILE_SIZE')
-                return
-            
-            file_data = self.read(file_size)
-            path      = self.read(path_len)
-            
-            try:
-                with open('./' + path, 'wb') as fil:
-                    fil.write(file_data)
-            except:
-                self.fail('CREATE_FILE')
-                
-                filename_pos = path.rfind('/')
-                trimmed_path = path if filename_pos == -1 else path[:filename_pos + 1]
-                
-                failed_dir  = Directory['FAIL_DIR'] + trimmed_path
-                failed_path = Directory['FAIL_DIR'] + path
-                if not exists(failed_dir):
-                    makedirs(failed_dir)
-                
-                with open(failed_path, 'wb') as fil:
-                    fil.write(file_data)
-    
-    def slots(self):
-        return super(FilesResponse, self).slots() | self.__slots__
-"""
+    return resp
