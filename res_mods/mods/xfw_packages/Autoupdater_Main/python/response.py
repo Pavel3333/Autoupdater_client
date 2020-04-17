@@ -1,6 +1,7 @@
-from .common import *
-from .shared import *
-from .packet import *
+from .common  import *
+from .shared  import *
+from .packet  import *
+from .request import *
 
 import json
 
@@ -11,7 +12,7 @@ from struct  import unpack
 __all__ = ('Response', 'ModsListResponse', 'DepsResponse', 'getResponse')
 
 class Response(StreamPacket):
-    __slots__ = {'failed', 'code', 'type', 'total_length', 'data'}
+    __slots__ = { 'code', 'type', 'total_length', 'data' }
     
     def __init__(self, urldata, resp_type, force_auth=False):
         super(Response, self).__init__(Constants.AUTOUPDATER_URL, urldata)
@@ -24,37 +25,34 @@ class Response(StreamPacket):
         self.total_length = 0
         self.data         = {}
         
-        types_events = {
-            ResponseType.index('GET_MODS_LIST') : 'Mods',
-            ResponseType.index('GET_DEPS')      : 'Deps',
-            ResponseType.index('GET_FILES')     : 'ModFiles'
-        }
-        
-        if self.type in types_events:
-            self.onDataProcessed = getattr(g_AUEvents, 'on%sDataProcessed'%(types_events[self.type])) # TODO
-        else:
-            raise NotImplementedError('Response type %s is not exists', self.type)
+        resp_progress = (
+            'Mods',
+            'Deps',
+            'ModFiles'
+        )
         
         self.total_length = self.parse('I', 4)[0]
         self.code         = self.parse('B', 1)[0]
         
         if self.total_length < 5:
-            self.fail('RESP_TOO_SMALL')
+            self.fail(ErrorCode.RespTooSmall, self.code)
             return
         
-        if self.code == WarningCode['TOKEN_EXPIRED']:
+        if self.code == WarningCode.TokenExpired:
+            print 'token expired!'
             g_AUShared.token = None
-            self.fail('TOKEN_EXPIRED')
+            self.fail(ErrorCode.TokenExpired, self.code)
             return
         
         try:
             self.data = json.loads(self.read())
         except:
-            self.fail('RESP_INVALID')
+            self.fail(ErrorCode.RespInvalid, self.code)
             return
         
         if 'token' in self.data:
-            g_AUShared.token = self.data.token
+            g_AUShared.token = self.data['token'].decode('utf-8')
+            print 'got token:', g_AUShared.token
     
     def getChunkSize(self):
         return len(self.chunk) - self.offset
@@ -64,17 +62,17 @@ class Response(StreamPacket):
         
         processed = self.total_processed
         total     = self.total_length
-        unit      = DataUnits.index('B')
+        unit      = DataUnits.B
         
         while processed > 1024 or total > 1024:
-            if unit + 1 >= len(DataUnits):
+            if not DataUnits.__hasattr__(int(unit) + 1):
                 break
             
             processed = self.div1024(processed)
             total     = self.div1024(total)
-            unit += 1
-            
-        self.onDataProcessed(processed, total, unit)
+            unit = DataUnits.__getattr__(int(unit) + 1)
+        
+        g_AUEvents.onDataProcessed(self.type, processed, total, unit)
     
     def readChunk(self, size):
         data = self.chunk[self.offset : self.offset + size]
@@ -121,24 +119,28 @@ class ModsListResponse(Response):
     def __init__(self, *args):
         super(ModsListResponse, self).__init__(*args)
         
+        self.mods = {}
+        
+        self.init()
+        
+        g_AUShared.addResponse(self)
+    
+    def init(self):
         if not self.check():
             return
         
-        self.mods = {}
-        
-        if self.code != ErrorCode.index('SUCCESS'):
-            self.fail('GETTING_MODS')
+        if self.code != ErrorCode.Success:
+            self.fail(ErrorCode.GetMods, self.code)
             return
         
         if 'exp_time' in self.data:
             g_AUShared.exp_time = self.data['exp_time']
         
-        if 'mods' in self.data:
-            self.mods = self.data['mods']
-        else:
-            self.fail('READING_MODS')
+        if 'mods' not in self.data:
+            self.fail(ErrorCode.ReadMods, self.code)
+            return
         
-        g_AUShared.addRequest(self)
+        self.mods = self.data['mods']
     
     def slots(self):
         return super(ModsListResponse, self).slots() | self.__slots__
@@ -149,29 +151,35 @@ class DepsResponse(Response):
     def __init__(self, *args):
         super(DepsResponse, self).__init__(*args)
         
+        self.dependencies = {}
+        
+        self.init()
+        
+        g_AUShared.addResponse(self)
+    
+    def init(self):
         if not self.check():
             return
         
-        self.dependencies = {}
-        
-        if self.code != ErrorCode.index('SUCCESS'):
-            self.fail('GETTING_DEPS')
+        if self.code != ErrorCode.Success:
+            self.fail(ErrorCode.GetDeps, self.code)
             return
         
         if 'deps' in self.data:
             self.dependencies = self.data['deps']
         else:
-            self.fail('READING_DEPS')
+            self.fail(ErrorCode.ReadDeps, self.code)
+            return
     
     def slots(self):
         return super(DepsResponse, self).slots() | self.__slots__
 
-def getResponse(cls, respType, req):
-    respType = ResponseType.index(respType)
+def getResponse(cls, req):
+    respType = g_AUShared.respType
     req_header = RequestHeader(respType)
 
     resp = cls(getRequest(req_header, req), respType)
-    if resp.failed == ErrorCode.index('TOKEN_EXPIRED'):
+    if resp.fail_err == ErrorCode.TokenExpired:
         del resp
         del req_header
         req_header = RequestHeader(respType, force_auth=True)

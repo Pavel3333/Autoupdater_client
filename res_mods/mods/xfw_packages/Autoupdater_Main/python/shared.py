@@ -28,21 +28,19 @@ class Logger(object):
 
 class Events:
     def __init__(self):
+        self.onDataProcessed           = Event()
+        
         self.onModsProcessingStart     = Event()
-        self.onModsDataProcessed       = Event()
         self.onModsProcessingDone      = Event()
         
         self.onDepsProcessingStart     = Event()
-        self.onDepsDataProcessed       = Event()
         self.onDepsProcessingDone      = Event()
         
         self.onDeletingStart           = Event()
-        self.onDeletingProcessed       = Event()
         self.onDeletingDone            = Event()
         
         self.onFilesProcessingStart    = Event()
         self.onModFilesProcessingStart = Event()
-        self.onModFilesDataProcessed   = Event()
         self.onModFilesProcessingDone  = Event()
         self.onFilesProcessingDone     = Event()
 
@@ -54,13 +52,15 @@ class Shared(Error):
         self.lic_key  = None
         self.exp_time = None
         self.token    = None
+        
+        self.respType = ResponseType.GetModsList
     
         self.mods         = {}
         self.dependencies = {}
         
         self.undeletedPaths = []
         
-        self.__requestsData = []
+        self.__responseData = []
         self.__debugData    = []
         
         self.window       = None
@@ -74,8 +74,11 @@ class Shared(Error):
         
         config = getJSON(Paths.CONFIG_PATH, self.config)
         
-        if not config:
-            self.fail('CONFIG')
+        if config is None:
+            self.fail(ErrorCode.Config)
+            return
+        elif isinstance(config, int):
+            self.fail(ErrorCode.Config, config)
             return
         else:
             self.config = config
@@ -83,8 +86,12 @@ class Shared(Error):
     def fail(self, err, extraCode=0):
         super(Shared, self).fail(err, extraCode)
         
-        if isinstance(err, int) and err in xrange(len(ErrorCode)):
-            err = ErrorCode[err]
+        if isinstance(err, tuple):
+            err, extraCode = err
+        if isinstance(err, int) or isinstance(err, str):
+            err = ErrorCode.__getattr__(err)
+        
+        self.handleErr(err, extraCode)
         
         import os
         import codecs
@@ -101,7 +108,7 @@ class Shared(Error):
             'data' : {
                 'mods'         : [mod.dict()        for mod        in self.mods.values()],
                 'dependencies' : [dependency.dict() for dependency in self.dependencies.values()],
-                'requestsData' : self.__requestsData
+                'requestsData' : self.__responseData
             },
             'debug' : self.__debugData
         }
@@ -113,7 +120,7 @@ class Shared(Error):
             if DEBUG:
                 with open(Directory['DUMP_DIR'] + dump['name'] + '_debug.bin', 'wb') as dbg_file:
                     for i, data in enumerate(dump['debug']):
-                        dbg_file.write('%s %s\n'%(i, data))
+                        dbg_file.write('packet %s:%s'%(i, data))
             
             self.logger.log('Dump data was saved to', Directory['DUMP_DIR'] + dump['name'])
         except:
@@ -142,10 +149,10 @@ class Shared(Error):
         if self.windowCommon is not None:
             self.windowCommon.createDialogs(*args, **kw)
     
-    def addRequest(self, request):
-        self.__requestsData.append(request.dict())
+    def addResponse(self, response):
+        self.__responseData.append(response.dict())
         if DEBUG:
-            self.__debugData.append(request.bin())
+            self.__debugData.append(response.bin())
 
 g_AUEvents = Events()
 g_AUShared = Shared()

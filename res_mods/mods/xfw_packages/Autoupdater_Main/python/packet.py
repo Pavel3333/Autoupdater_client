@@ -1,38 +1,40 @@
 from .common import *
 
-from urllib import urlopen
+from urllib import urlopen, urlencode
 
 __all__ = ('Packet', 'StreamPacket')
 
 class Packet(object):
-    __slots__ = {'__string', 'code'}
+    __slots__ = {'__string'}
     
     def __init__(self):
-        code = ErrorCode.index('SUCCESS')
         self.__string = ''
         
     def __str__(self): return self.__string
     def __len__(self): return len(self.__string)
 
 class StreamPacket(Error):
-    __slots__ = {'conn', 'chunk', 'debug_data', 'offset', 'total_processed', 'total_length', 'onDataProcessed'}
+    __slots__ = { 'conn', 'chunk', 'debug_data', 'offset', 'total_processed', 'total_length' }
     
     def __init__(self, url, urldata):
         super(StreamPacket, self).__init__(url, urldata)
         
         try:
-            self.conn = urlopen(url, urldata)
+            self.conn = urlopen(url, urlencode({'request' : urldata}))
+        except IOError as exc:
+            self.fail(ErrorCode.Connect, exc.errno)
+            return
         except:
-            self.fail('CONNECT')
+            self.fail(ErrorCode.Connect)
             return
         
         self.chunk           = ''
         self.debug_data      = ''
+        if DEBUG:
+            self.debug_data = 'request:%s;response:'%(urldata)
         
         self.offset          = 0
         self.total_processed = 0
-        
-        self.onDataProcessed = None
     
     def read_stream(self, size=None):
         data = self.conn.read(size)
@@ -41,7 +43,7 @@ class StreamPacket(Error):
         return data
     
     def slots(self):
-        return frozenset()
+        return super(StreamPacket, self).slots()
     
     def dict(self):
         return dict((slot, getattr(self, slot, None)) for slot in self.slots())

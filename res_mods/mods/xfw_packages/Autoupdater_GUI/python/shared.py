@@ -13,7 +13,7 @@ __all__ = ('cases_by_postfix', 'htmlMsg', 'g_AUGUIShared')
 
 def cases_by_postfix(case, data, types):
     prefix  = data // 10
-    postfix = data % 10
+    postfix = data  % 10
 
     type_ = 0
     if   prefix == 1 or postfix == 0 or postfix > 4:
@@ -22,7 +22,7 @@ def cases_by_postfix(case, data, types):
         type_ = 1
     elif 1 < postfix < 5:
         type_ = 2
-        
+    
     return types[type_][case]
 
 def htmlMsg(msg, color=None, size=None, nl=0):
@@ -42,6 +42,10 @@ def htmlMsg(msg, color=None, size=None, nl=0):
 
 class Shared:
     def __init__(self):
+        ErrorCode    = AUMain.ErrorCode
+        WarningCode  = AUMain.WarningCode
+        ResponseType = AUMain.ResponseType
+        
         self.translation = {
             "info" : [
                 "Pavel3333 Mods Autoupdater",
@@ -77,51 +81,54 @@ class Shared:
                 "close"        : "Close"
             },
             "msg_err" : {
-                "TRANSLATIONS"       : "An error occured while loading autoupdater translations.\nPlease redownload the autoupdater",
-                "CONFIG"             : "An error occured while loading autoupdater config.\nPlease redownload the autoupdater",
-                "CHECKING_ID"        : "An error occured while checking player ID",
-                "LOAD_XFW_NATIVE"    : "An error occured while loading XFW Native files.\nPlease redownload the autoupdater",
-                "UNPACK_NATIVE"      : "An error occured while unpacking native module.\nPlease redownload the autoupdater",
-                "LOAD_NATIVE"        : "An error occured while loading native module.\nPlease redownload the autoupdater",
-                "FILES_NOT_FOUND"    : "An error occured while loading autoupdater files.\nPlease redownload the autoupdater",
-                "LIC_INVALID"        : "License key is invalid",
-                "CONNECT"            : "Unable to connect to the server",
-                "RESP_TOO_SMALL"     : "An error occured: getted empty response",
-                "RESP_INVALID"       : "An error occured: getted invalid response",
-                "TOKEN_EXPIRED"      : "Unable to prolong the token. Please contact us",
-                "GETTING_MODS"       : "An error occured while getting mod list. Error code %s",
-                "READING_MODS"       : "An error occured while reading mod list",
-                "GETTING_DEPS"       : "An error occured while getting dependencies list. Error code %s",
-                "READING_DEPS"       : "An error occured while reading dependencies list",
-                "INVALID_PATH_LEN"   : "Got invalid path length",
-                "INVALID_FILE_SIZE"  : "Got invalid file size",
-                "GETTING_FILES"      : "An error occured while getting files. Error code %s",
-                "CREATE_FILE"        : "Unable to update some files.\nThey will be updated after game restart",
-                "CREATE_MANUAL_FILE" : "Unable to update some files and copy it to manual directory.\nPlease contact us",
-                "DECODE_MOD_FIELDS"  : "Getted incorrect mod data",
-                "DELETE_FILE"        : "Unable to delete some files.\nThey will be deleted after game restart",
-                "CURL_GINIT"         : "CURL global initialization failed. Error code %s. Please contact us",
-                "CURL_EINIT"         : "CURL initialization failed. Error code %s. They will be deleted after game restart"
+                str(ErrorCode.Translations)     : "An error occured while loading autoupdater translations.\nPlease redownload the autoupdater",
+                str(ErrorCode.Config)           : "An error occured while loading autoupdater config.\nPlease redownload the autoupdater",
+                str(ErrorCode.LoadXFWNative)    : "An error occured while loading XFW Native files.\nPlease redownload the autoupdater",
+                str(ErrorCode.UnpackNative)     : "An error occured while unpacking native module.\nPlease redownload the autoupdater",
+                str(ErrorCode.LoadNative)       : "An error occured while loading native module.\nPlease redownload the autoupdater",
+                str(ErrorCode.CheckID)          : "An error occured while checking player ID",
+                str(ErrorCode.FilesNotFound)    : "An error occured while loading autoupdater files.\nPlease redownload the autoupdater",
+                str(ErrorCode.LicInvalid)       : "License key is invalid",
+                str(ErrorCode.Connect)          : "Unable to connect to the server",
+                str(ErrorCode.RespTooSmall)     : "An error occured: got empty response",
+                str(ErrorCode.RespInvalid)      : "An error occured: got invalid response",
+                str(ErrorCode.TokenExpired)     : "Unable to prolong the token. Please contact us",
+                str(ErrorCode.GetMods)          : "An error occured while getting mod list. Error code %s",
+                str(ErrorCode.ReadMods)         : "An error occured while reading mod list",
+                str(ErrorCode.GetDeps)          : "An error occured while getting dependencies list. Error code %s",
+                str(ErrorCode.ReadDeps)         : "An error occured while reading dependencies list",
+                str(ErrorCode.GetFiles)         : "An error occured while getting files. Error code %s",
+                str(ErrorCode.InvalidPathLen)   : "Got invalid path length",
+                str(ErrorCode.InvalidFileSize)  : "Got invalid file size",
+                str(ErrorCode.CreateFile)       : "Unable to update some files.\nThey will be updated after game restart",
+                str(ErrorCode.CreateManualFile) : "Unable to update some files and copy it to manual directory.\nPlease contact us",
+                str(ErrorCode.GetModFields)     : "Could not get mod data",
+                str(ErrorCode.DecodeModFields)  : "Got incorrect mod data",
+                str(ErrorCode.DeleteFile)       : "Unable to delete some files.\nThey will be deleted after game restart",
+                # native module errors
+                str(ErrorCode.CurlGInit)        : "CURL global initialization failed. Error code %s. Please contact us",
+                str(ErrorCode.CurlEInit)        : "CURL initialization failed. Error code %s. They will be deleted after game restart"    
             },
             "msg_warn" : {
-                "CHECK_ID"         : "ID was not found",
-                "GET_USER_DATA"    : "You are not subscribed to Autoupdater.<br>You can subscribe it on \"https://pavel3333.ru/trajectorymod/lk\"",
-                "EXPIRED"          : "Autoupdater subscription has expired.<br >You can renew the subscription on \"https://pavel3333.ru/trajectorymod/lk\"",
-                "GET_MOD_DESC"     : "Mod was not found"
+                str(WarningCode.CheckID)      : "ID was not found",
+                str(WarningCode.GetUserData)  : "You are not subscribed to Autoupdater.<br>You can subscribe it on \"https://pavel3333.ru/trajectorymod/lk\"",
+                str(WarningCode.TokenExpired) : "Unable to prolong the token. Please contact us",
+                str(WarningCode.Expired)      : "Autoupdater subscription has expired.<br >You can renew the subscription on \"https://pavel3333.ru/trajectorymod/lk\"",
+                str(WarningCode.GetModDesc)   : "Mod was not found"
             },
             "titles" : {
                 "main" : AUMain.Constants.MOD_NAME,
                 "procStart" : {
-                    "GET_MODS_LIST" : "Getting mods list...",
-                    "GET_DEPS"      : "Getting dependicies list...",
-                    "DEL_FILES"     : "Deleting old files...",
-                    "GET_FILES"     : "Getting files..."
+                    str(ResponseType.GetModsList) : "Getting mods list...",
+                    str(ResponseType.GetDeps)     : "Getting dependicies list...",
+                    str(ResponseType.DelFiles)    : "Deleting old files...",
+                    str(ResponseType.GetFiles)    : "Getting files..."
                 },
                 "procDone"  : {
-                    "GET_MODS_LIST" : "Getting mods list done",
-                    "GET_DEPS"      : "Getting dependicies list done",
-                    "DEL_FILES"     : "Deleting old files done",
-                    "GET_FILES"     : "Getting files done"
+                    str(ResponseType.GetModsList) : "Getting mods list done",
+                    str(ResponseType.GetDeps)     : "Getting dependicies list done",
+                    str(ResponseType.DelFiles)    : "Deleting old files done",
+                    str(ResponseType.GetFiles)    : "Getting files done"
                 }
             },
             "times_ru" : [
@@ -152,10 +159,13 @@ class Shared:
             ]
         }
         
-        translation = AUMain.getJSON(GUIPaths.TRANSLATION_PATH%(AUMain.AUTH_REALM.lower()), self.translation)
+        translation = AUMain.getJSON(GUIPaths.TRANSLATION_PATH%(str(AUMain.AUTH_REALM).lower()), self.translation)
         
-        if not translation:
-            AUMain.g_AUShared.fail('TRANSLATIONS')
+        if translation is None:
+            AUMain.g_AUShared.fail(AUMain.ErrorCode.Translations)
+            return
+        elif isinstance(translation, int):
+            AUMain.g_AUShared.fail(AUMain.ErrorCode.Translations, translation)
             return
         else:
             self.translation = translation
@@ -164,74 +174,70 @@ class Shared:
         return self.translation['msg'][key]
     
     def getErrMsg(self, err):
-        if isinstance(err, int) and err in xrange(len(AUMain.ErrorCode)):
-            err = AUMain.ErrorCode[err]
-        return self.translation['msg_err'][err]
+        if isinstance(err, int):
+            err = AUMain.ErrorCode.__getattr__(err)
+        return self.translation['msg_err'][str(err)]
     
-    def getWarnMsg(self, err):
-        return self.translation['msg_warn'][getKey(err, AUMain.WarningCode)]
+    def getWarnMsg(self, code):
+        if isinstance(code, int):
+            code = AUMain.WarningCode.__getattr__(err)
+        return self.translation['msg_warn'][str(code)]
     
-    def getTitle(self, key, respType=None):
+    def getTitle(self, key):
         result = self.translation['titles'][key]
         
         if isinstance(result, dict):
-            if respType is not None:
-                if isinstance(respType, int) and respType in xrange(len(AUMain.ResponseType)):
-                    respType = AUMain.ResponseType[respType]
-                return result[respType]
-            raise KeyError('getTitle: respType is None')
+            return result[str(AUMain.g_AUShared.respType)]
         return result
     
-    def handleErr(self, err, code):
-        if isinstance(err, int) and err in xrange(len(AUMain.ErrorCode)):
-            err = AUMain.ErrorCode[err]
-        
-        if err == 'SUCCESS':
+    def handleErr(self, err, code=0):
+        if err == AUMain.ErrorCode.Success:
             return
         
         msg = self.handleServerErr(err, code)
         
-        if err == 'GETTING_MODS':
+        if AUMain.g_AUShared.respType == AUMain.ResponseType.ModsList:
             code_key = {
-                'GET_USER_DATA' : 'subscribe',
-                'EXPIRED'       : 'renew'
+                AUMain.WarningCode.GetUserData : 'subscribe',
+                AUMain.WarningCode.Expired     : 'renew'
             }
             
-            if code in map(AUMain.WarningCode.__getitem__, code_key):
+            if code in code_key:
                 key = code_key[code]
                 
-                self.createDialog(title=self.getMsg('warn'), message=msg, submit=self.getMsg(key), close=self.getMsg('close'), url='https://pavel3333.ru/trajectorymod/lk')
+                self.createDialog(
+                    title=self.getMsg('warn'),
+                    message=msg,
+                    submit=self.getMsg(key),
+                    close=self.getMsg('close'),
+                    url='https://pavel3333.ru/trajectorymod/lk'
+                )
         
-        err_status = {
-            'GETTING_MODS' : 'MODS_LIST',
-            'GETTING_DEPS' : 'DEPS'
-        }
-        
-        if self.window and err in err_status:
-            window.setStatus(err_status[err], htmlMsg(self.getMsg('warn') + ' ' + msg, color='ff0000'))
+        window = AUMain.g_AUShared.window
+        if window is not None:
+            window.setStatus(htmlMsg(self.getMsg('warn') + ' ' + msg, color='ff0000'))
     
     def handleServerErr(self, err, code):
-        if code in AUMain.WarningCode.values():
+        print 'handleServerErr(%s, %s)'%(err, code)
+        if AUMain.WarningCode.__hasattr__(code):
             return self.getWarnMsg(code)
-        elif err in AllErr:
-            msg = self.getErrMsg(err)
-            if err in FormatErr:
-                msg = msg%(code)
-            return msg
+        elif SimpleErr.__hasattr__(err):
+            return self.getErrMsg(err)
+        elif FormatErr.__hasattr__(err):
+            return self.getErrMsg(err)%(code)
         return self.getMsg('unexpected')%(err, code)
     
     def show_format_date(self, case, data):
-        if data:
-            times = ''
-            if AUMain.AUTH_REALM == 'RU':
-                times = cases_by_postfix(case, data, self.translation['times_ru'])
-            else:
-                times = self.translation['times_en'][case]
-                if data > 1:
-                    times += 's'
-            return '%s <u><b>%s</b></u> '%(data, times)
-        else:
+        if not data:
             return ''
+        times = ''
+        if AUMain.AUTH_REALM == 'RU':
+            times = cases_by_postfix(case, data, self.translation['times_ru'])
+        else:
+            times = self.translation['times_en'][case]
+            if data > 1:
+                times += 's'
+        return '%s <u><b>%s</b></u> '%(data, times)
     
     def exp_time(self, exp):
         from time import time

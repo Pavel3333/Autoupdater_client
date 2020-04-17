@@ -1,128 +1,117 @@
-__all__ = ('LangID', 'AUTH_REALM', 'getLangID', 'DEBUG', 'ErrorCode', 'WarningCode', 'ResponseType', 'DataUnits', 'StatusType', 'ProgressType', 'Error', 'getKey', 'getJSON', 'checkSeqs', 'Constants', 'Directory', 'Paths', 'getLevels', 'Event', 'DeleteExclude', 'Mod')
+from .enum import *
+__all__ = ('LangID', 'AUTH_REALM', 'DEBUG', 'ErrorCode', 'WarningCode', 'ResponseType', 'DataUnits', 'ProgressType', 'Resp2ProgressTypeMap', 'Error', 'getJSON', 'checkSeqs', 'Constants', 'Directory', 'Paths', 'getLevels', 'Event', 'DeleteExclude', 'Mod')
 
-LangID = (
-    'RU',
-    'EU',
-    'CN'
-)
+class LangID(Enum):
+    RU = 0
+    EU = 1
+    CN = 2
 
-AUTH_REALM = 'EU'
+AUTH_REALM = LangID.EU
 
 try:
-    from constants import AUTH_REALM
+    from constants import AUTH_REALM as game_realm
+    if LangID.__hasattr__(game_realm):
+        AUTH_REALM = LangID.__getattr__(game_realm)
 except ImportError:
     pass
 
-def getLangID():
-    return LangID.index(AUTH_REALM) if AUTH_REALM in LangID else LangID.index('EU')
-
 DEBUG = True
 
-ErrorCode = (
-    'SUCCESS',            # 0
-    'TRANSLATIONS',       # 1
-    'CONFIG',             # 2
-    'LOAD_XFW_NATIVE',    # 3
-    'UNPACK_NATIVE',      # 4
-    'LOAD_NATIVE',        # 5
-    'CHECKING_ID',        # 6
-    'FILES_NOT_FOUND',    # 7
-    'LIC_INVALID',        # 8
-    'CONNECT',            # 9
-    'RESP_TOO_SMALL',     # 10
-    'RESP_INVALID',       # 11
-    'TOKEN_EXPIRED',      # 12
-    'GETTING_MODS',       # 13
-    'READING_MODS',       # 14
-    'GETTING_DEPS',       # 15
-    'READING_DEPS',       # 16
-    'GETTING_FILES',      # 17
-    'INVALID_PATH_LEN',   # 18
-    'INVALID_FILE_SIZE',  # 19
-    'CREATE_FILE',        # 20
-    'CREATE_MANUAL_FILE', # 21
-    'GET_MOD_FIELDS',     # 22
-    'DECODE_MOD_FIELDS',  # 23
-    'DELETE_FILE',        # 24
+class ErrorCode(Enum):
+    Success          = 0
+    Translations     = 1
+    Config           = 2
+    LoadXFWNative    = 3
+    UnpackNative     = 4
+    LoadNative       = 5
+    CheckID          = 6
+    FilesNotFound    = 7
+    LicInvalid       = 8
+    Connect          = 9
+    RespTooSmall     = 10
+    RespInvalid      = 11
+    TokenExpired     = 12
+    GetMods          = 13
+    ReadMods         = 14
+    GetDeps          = 15
+    ReadDeps         = 16
+    GetFiles         = 17
+    InvalidPathLen   = 18
+    InvalidFileSize  = 19
+    CreateFile       = 20
+    CreateManualFile = 21
+    GetModFields     = 22
+    DecodeModFields  = 23
+    DeleteFile       = 24
     # native module errors
-    'CURL_GINIT',         # 25
-    'CURL_EINIT'          # 26
-)
+    CurlGInit        = 25
+    CurlEInit        = 26
 
-WarningCode = {
-    #'HTTPS'            : 1,
-    #'REQ_NOT_FOUND'    : 2,
-    #'PARSE_HDR'        : 3,
-    #'REQ_INVALID_LEN'  : 4,
-    #'PARSE_WGID'       : 5,
-    #'READ_LIC'         : 6,
-    'CHECK_ID'         : 7,
-    'GET_USER_DATA'    : 8,
-    #'READ_TOKEN'       : 9,
-    'TOKEN_EXPIRED'    : 10,
-    'EXPIRED'          : 11,
-    #'READ_CODE'        : 12,
-    #'INCORRECT_CODE'   : 13,
-    #'READ_LANG'        : 14,
-    #'READ_GUI_FLAG'    : 15,
-    #'PARSE_DEPS_COUNT' : 16,
-    #'PARSE_GF_HDR'     : 17,
-    'GET_MOD_DESC'     : 18,
+class WarningCode(Enum):
+    #HTTPS          = 1
+    #ReqNotFound    = 2
+    #ParseHdr       = 3
+    #ReqInvalidLen  = 4
+    #ParseWGID      = 5
+    #ReadLic        = 6
+    CheckID         = 7
+    GetUserData     = 8
+    #ReadToken      = 9
+    TokenExpired    = 10
+    Expired         = 11
+    #ReadCode       = 12
+    #IncorrectCode  = 13
+    #ReadLang       = 14
+    #ReadGUIFlag    = 15
+    #ParseDepsCount = 16
+    #Parse_GF_Hdr   = 17
+    GetModDesc      = 18
     
-    #'UNKNOWN'          : 255
+    #Unknown        = 255
+
+class ResponseType(Enum):
+    GetModsList = 0
+    GetDeps     = 1
+    DelFiles    = 2
+    GetFiles    = 3
+
+class DataUnits(Enum):
+    B  = 0
+    KB = 1
+    MB = 2
+    GB = 3
+
+class ProgressType(Enum):
+    ModsListData = 0
+    FilesData    = 1
+    FilesTotal   = 2
+
+Resp2ProgressTypeMap = {
+    int(ResponseType.GetModsList) : ProgressType.ModsListData,
+    int(ResponseType.GetDeps)     : ProgressType.ModsListData,
+    int(ResponseType.DelFiles)    : ProgressType.FilesData,
+    int(ResponseType.GetFiles)    : ProgressType.FilesData
 }
 
-ResponseType = (
-    'GET_MODS_LIST', # 0
-    'GET_DEPS',      # 1
-    'DEL_FILES',     # 2
-    'GET_FILES'      # 3
-)
-
-DataUnits = (
-    'B',  # 0
-    'KB', # 1
-    'MB', # 2
-    'GB'  # 3
-)
-
-StatusType = (
-    'MODS_LIST', # 0
-    'DEPS',      # 1
-    'DEL',       # 2
-    'FILES'      # 3
-)
-
-ProgressType = (
-    'MODS_LIST_DATA', # 0
-    'FILES_DATA',     # 1
-    'FILES_TOTAL'     # 2
-)
-
 class Error(object):
+    __slots__ = { 'fail_err', 'fail_code' }
+    
     def __init__(self, *args):
-        self.failed = ErrorCode.index('SUCCESS')
+        self.fail_err  = ErrorCode.Success
+        self.fail_code = 0
     
     def check(self):
-        return self.failed == ErrorCode.index('SUCCESS')
+        return self.fail_err == ErrorCode.Success
     
     def fail(self, err, extraCode=0):
-        if isinstance(err, str):
-            err = ErrorCode.index(err)
+        if isinstance(err, int) or isinstance(err, str):
+            err = ErrorCode.__getattr__(err)
         
-        if err == ErrorCode.index('SUCCESS'):
-            self.failed = err
-        else:
-            self.failed = (err, extraCode)
-
-def getKey(err, codes={}):
-    if isinstance(err, str):
-        return err
-    elif isinstance(err, int):
-        for key, code in codes.iteritems():
-            if code == err:
-                return key
-    raise KeyError('Error %s was not found'%(err))
+        self.fail_err  = err
+        self.fail_code = extraCode
+    
+    def slots(self):
+        return self.__slots__
 
 def getJSON(path, pattern):
     import json
@@ -146,8 +135,10 @@ def getJSON(path, pattern):
             with open(path, 'w') as fil:
                 json.dump(pattern, fil, sort_keys=True, indent=4)
             return pattern
+    except IOError as exc:
+        return exc.errno
     except:
-        return False
+        return None
 
 def checkSeqs(seq1, seq2): # Check if dic1 contains keys of dic2
     if not isinstance(seq1, type(seq2)):
@@ -159,7 +150,7 @@ def checkSeqs(seq1, seq2): # Check if dic1 contains keys of dic2
     elif isinstance(seq1, list):
         return len(seq1) == len(seq2) and all(checkSeqs(seq1[i], seq2[i]) for i in xrange(len(seq1)))
     return True
-    
+
 
 class Constants:
     MOD_NAME = 'Autoupdater'
@@ -232,7 +223,7 @@ from os.path import exists
 from hashlib import md5
 
 class Mod(Error):
-    __slots__ = { 'failed', 'needToUpdate', 'needToDelete', 'id', 'enabled', 'name', 'description', 'version', 'build', 'tree', 'names', 'hashes', 'dependencies' }
+    __slots__ = { 'needToUpdate', 'needToDelete', 'id', 'enabled', 'name', 'description', 'version', 'build', 'tree', 'names', 'hashes', 'dependencies' }
     
     def __init__(self, mod):
         super(Mod, self).__init__()
@@ -255,7 +246,7 @@ class Mod(Error):
             self.version     = mod['version']
             self.build       = mod['build']
         except KeyError:
-            self.fail('GET_MOD_FIELDS')
+            self.fail(ErrorCode.GetModFields)
             return
         
         try:
@@ -265,7 +256,7 @@ class Mod(Error):
             if 'dependencies' in mod:
                 self.dependencies = json.loads(mod['dependencies'])
         except:
-            self.fail('DECODE_MOD_FIELDS')
+            self.fail(ErrorCode.DecodeModFields)
     
     def parseTree(self, path, curr_dic):
         for ID in curr_dic:
@@ -300,7 +291,7 @@ class Mod(Error):
                 self.parseTree(subpath + '/', curr_dic[ID])
     
     def slots(self):
-        return self.__slots__ - {'needToUpdate', 'needToDelete'}
+        return super(Mod, self).slots() | self.__slots__ - {'needToUpdate', 'needToDelete'}
     
     def dict(self):
         return dict((slot, getattr(self, slot, None)) for slot in self.slots())

@@ -3,13 +3,12 @@ from .packet import *
 from .shared import *
 
 from struct import pack
-from urllib import urlencode
 
 __all__ = ('RequestHeader', 'Request', 'getRequest')
 
 class RequestHeader():
     def __init__(self, req_type, force_auth=False):
-        self.__type = req_type
+        self.__type = int(req_type)
         self.force_auth = force_auth
     
     def get_type(self):
@@ -17,7 +16,7 @@ class RequestHeader():
     
     def __str__(self):
         need_auth = self.force_auth or g_AUShared.token is None
-        result = chr(bool(need_auth)) + chr(self.__type)
+        result = chr(self.__type) + chr(bool(need_auth))
         
         if need_auth:
             result += pack('I', g_AUShared.ID) + \
@@ -45,4 +44,4 @@ class Request(Packet):
 def getRequest(req_header, req):
         data = str(req_header) + str(req)
         header = pack('H', 2 + len(data))
-        return urlencode({'request' : header + data})
+        return header + data

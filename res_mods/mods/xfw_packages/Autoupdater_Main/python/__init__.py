@@ -1,3 +1,4 @@
+from .enum     import *
 from .common   import *
 from .packet   import *
 from .request  import *
@@ -28,8 +29,6 @@ class Autoupdater:
             if not exists(directory):
                 makedirs(directory)
         
-        self.langID = getLangID()
-        
         self.unpackAfterFini = False
         self.deleteAfterFini = False
         self.finiHooked      = False
@@ -38,17 +37,16 @@ class Autoupdater:
        
         xfwnative = loader.get_mod_module('com.modxvm.xfw.native')
         if xfwnative is None:
-            g_AUShared.fail('LOAD_XFW_NATIVE')
+            g_AUShared.fail(ErrorCode.LoadXFWNative)
             return
         
         if not xfwnative.unpack_native(self.MOD_ID):
-            g_AUShared.fail('UNPACK_NATIVE')
+            g_AUShared.fail(ErrorCode.UnpackNative)
             return
         
         self.module = xfwnative.load_native(self.MOD_ID, 'AUGetter.pyd', 'AUGetter')
         if not self.module:
-            print 'fail: LOAD_NATIVE'
-            g_AUShared.fail('LOAD_NATIVE')
+            g_AUShared.fail(ErrorCode.LoadNative)
             return
         
         g_playerEvents.onAccountShowGUI += self.getID
@@ -57,19 +55,26 @@ class Autoupdater:
         g_AUShared.ID = ctx.get('databaseID', 0)
         
         if not g_AUShared.ID:
-            g_AUShared.fail('CHECKING_ID')
+            g_AUShared.fail(ErrorCode.CheckID)
             return
             
         lic_path = Paths.LIC_PATH%(g_AUShared.ID^0xb7f5cba9)
         if not exists(lic_path):
-            g_AUShared.fail('FILES_NOT_FOUND')
+            g_AUShared.fail(ErrorCode.FilesNotFound)
             return
-            
-        with open(lic_path, 'rb') as lic_file:
-            self.lic = lic_file.read()
+        
+        try:
+            with open(lic_path, 'rb') as lic_file:
+                g_AUShared.lic_key = lic_file.read()
+        except IOError as exc:
+            g_AUShared.fail(ErrorCode.FilesNotFound, exc.errno)
+            return
+        except:
+            g_AUShared.fail(ErrorCode.FilesNotFound)
+            return
         
         if len(g_AUShared.lic_key) != Constants.LIC_LEN:
-            g_AUShared.fail('LIC_INVALID')
+            g_AUShared.fail(ErrorCode.LicInvalid)
             return
         
         self.hangarSpace.onHeroTankReady += self.start
@@ -88,24 +93,30 @@ class Autoupdater:
     def getModsList(self):
         if not g_AUShared.check(): return
         
+        g_AUShared.respType = ResponseType.GetModsList
+        
         g_AUEvents.onModsProcessingStart()
         
         req = Request()
-        req.parse('B', self.langID)
+        req.parse('B', AUTH_REALM)
         req.parse('B', int(g_AUShared.config['enable_GUI']))
         
-        resp = getResponse(ModsListResponse, 'GET_MODS_LIST', req)
-        if resp.failed:
-            g_AUShared.fail(resp.failed, resp.code)
-            return
+        resp = getResponse(ModsListResponse, req)
         
         g_AUEvents.onModsProcessingDone()
-        g_AUShared.handleErr(resp.failed, resp.code)
+        
+        if resp.fail_err != ErrorCode.Success:
+            g_AUShared.fail(resp.fail_err, resp.fail_code)
+            return
+        
+        g_AUShared.handleErr(resp.fail_err, resp.fail_code)
         
         self.getDepsList(resp.mods)
     
     def getDepsList(self, mods):
         if not g_AUShared.check(): return
+        
+        g_AUShared.respType = ResponseType.GetDeps
         
         dependencies = {
             'enabled'  : set(),
@@ -125,8 +136,8 @@ class Autoupdater:
         
         for modID in mods:
             mod = g_AUShared.mods[modID] = Mod(mods[modID])
-            if mod.failed:
-                g_AUShared.fail(mod.failed, mod.code)
+            if mod.fail_err != ErrorCode.Success:
+                g_AUShared.fail(resp.fail_err, resp.fail_code)
                 return
             mod.parseTree('./', mod.tree)
             
@@ -139,27 +150,29 @@ class Autoupdater:
         
         dependencies['disabled'] -= dependencies['enabled']
         
-        req = Request(req_header)
-        req.parse('B', self.langID)
+        req = Request()
+        req.parse('B', AUTH_REALM)
         req.parse('H', len(dependencies['enabled'] | dependencies['disabled']))
         for key in dependencies:
             for dependencyID in dependencies[key]:
                 req.parse('H', dependencyID)
                 req.parse('B', 1 if key == 'enabled' else 0)
         
-        resp = getResponse(DepsResponse, 'GET_DEPS', req)
-        if resp.failed:
-            g_AUShared.fail(resp.failed)
-            return
+        resp = getResponse(DepsResponse, req)
         
         g_AUEvents.onDepsProcessingDone()
-        g_AUShared.handleErr(resp.failed, resp.code)
+        
+        if resp.fail_err != ErrorCode.Success:
+            g_AUShared.fail(resp.fail_err, resp.fail_code)
+            return
+        
+        g_AUShared.handleErr(resp.fail_err, resp.fail_code)
         
         deps = resp.dependencies
         for dependencyID in deps:
             dependency = g_AUShared.dependencies[dependencyID] = Mod(deps[dependencyID])
-            if dependency.failed:
-                g_AUShared.fail(dependency.failed)
+            if dependency.fail_err != ErrorCode.Success:
+                g_AUShared.fail(dependency.fail_err, dependency.fail_code)
                 return
             dependency.parseTree('./', dependency.tree)
             
@@ -199,6 +212,8 @@ class Autoupdater:
     def delFiles(self, paths):
         if not g_AUShared.check(): return 0
         
+        g_AUShared.respType = ResponseType.DelFiles
+        
         paths_count = len(paths['file']) + len(paths['dir'])
         
         undeletedPaths = []
@@ -211,7 +226,11 @@ class Autoupdater:
                 try:
                     remove(path)
                     deleted += 1
-                except Exception:
+                    g_AUEvents.onDataProcessed(g_AUShared.respType, deleted, paths_count, '')
+                except OSError as exc:
+                    g_AUShared.undeletedPaths.append(path)
+                    g_AUShared.logger.log('Unable to delete file %s (errno %s)'%(path, exc.errno))
+                except:
                     g_AUShared.undeletedPaths.append(path)
                     g_AUShared.logger.log('Unable to delete file %s'%(path))
             #else:
@@ -222,10 +241,16 @@ class Autoupdater:
                 try:
                     rmdir(path)
                     deleted += 1
-                except Exception:
+                    g_AUEvents.onDataProcessed(g_AUShared.respType, deleted, paths_count, '')
+                except OSError as exc:
+                    g_AUShared.undeletedPaths.append(path)
+                    g_AUShared.logger.log('Unable to delete directory %s (errno %s)'%(path, exc.errno))
+                    g_AUShared.fail(ErrorCode.DeleteFile, exc.errno)
+                    break
+                except:
                     g_AUShared.undeletedPaths.append(path)
                     g_AUShared.logger.log('Unable to delete directory %s'%(path))
-                    g_AUShared.fail('DELETE_FILE')
+                    g_AUShared.fail(ErrorCode.DeleteFile, exc.errno)
                     break
             #else:
             #    g_AUShared.logger.log('Directory %s is not empty'%(path))
@@ -241,6 +266,10 @@ class Autoupdater:
     
     def getFiles(self):
         if not g_AUShared.check(): return
+        
+        g_AUShared.respType = ResponseType.GetFiles
+        
+        print 'token before getting files:', type(g_AUShared.token), g_AUShared.token
         
         mods = g_AUShared.mods.copy()
         mods.update(g_AUShared.dependencies)

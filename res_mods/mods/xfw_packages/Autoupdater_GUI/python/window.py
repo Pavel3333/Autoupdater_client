@@ -85,7 +85,7 @@ class AutoupdaterLobbyWindow(AutoupdaterLobbyWindowMeta):
     
     def getProgress(self, processed, total):
         if not total: return 0
-        return int(100.0 * (float(processed) / float(total)))
+        return int(100.0 * float(processed) / float(total))
     
     def setTitle(self, title):
         self.as_setTitleS(title)
@@ -96,54 +96,21 @@ class AutoupdaterLobbyWindow(AutoupdaterLobbyWindowMeta):
     def setExpTime(self, text):
         self.as_setExpTimeS(text)
     
-    def setStatus(self, statusType, status):
-        statuses = (
-            'MODS_LIST', # 0 -> ModsList
-            'DEPS',      # 1 -> ModsList
-            'FILES',     # 2 -> Files
-            'DEL'        # 3 -> Files
-        )
-        
-        if isinstance(statusType, str) and statusType in statuses:
-            self.as_setStatusS(statuses.index(statusType), status)
-        elif isinstance(statusType, int) and statusType in xrange(len(statuses)):
-            self.as_setStatusS(statusType, status)
-        else:
-            raise NotImplementedError('Status type is not exists')
+    def setStatus(self, status):
+        # 0 -> ModsList
+        # 1 -> ModsList
+        # 2 -> Files
+        # 3 -> Files
+        self.as_setStatusS(int(AUMain.g_AUShared.respType), status)
     
     def setRawProgress(self, progressType, value):
-        progresses = (
-            'MODS_LIST_DATA', # 0 -> ModsList
-            'FILES_DATA',     # 1 -> FilesData
-            'FILES_TOTAL'     # 2 -> FilesTotal
-        )
-        
-        if isinstance(progressType, str) and progressType in progresses:
-            self.as_setRawProgressS(progresses.index(progressType), value)
-        elif isinstance(progressType, int) and progressType in xrange(len(progresses)):
-            self.as_setRawProgressS(progressType, value)
-        else:
-            raise NotImplementedError('Progress type is not exists')
+        self.as_setRawProgressS(int(progressType), value)
     
     def setProgress(self, progressType, processed, total, unit):
-        if isinstance(unit, int):
-            unit = AUMain.DataUnits[unit] if unit in xrange(len(AUMain.DataUnits)) else ''
-        
-        progressText  = '%s/%s %s'%(processed, total, unit)
+        progressText  = '%s/%s %s'%(processed, total, str(unit))
         progressValue = self.getProgress(processed, total)
         
-        progresses = (
-            'MODS_LIST_DATA', # 0 -> ModsList
-            'FILES_DATA',     # 1 -> FilesData
-            'FILES_TOTAL'     # 2 -> FilesTotal
-        )
-        
-        if isinstance(progressType, str) and progressType in progresses:
-            self.as_setProgressS(progresses.index(progressType), progressText, progressValue)
-        elif isinstance(progressType, int) and progressType in xrange(len(progresses)):
-            self.as_setProgressS(progressType, progressText, progressValue)
-        else:
-            raise NotImplementedError('Progress type is not exists')
+        self.as_setProgressS(int(progressType), progressText, progressValue)
     
     def writeFilesText(self, text):
         self.as_writeFilesTextS(text)
@@ -160,26 +127,24 @@ if not g_entitiesFactories.getSettings('AutoupdaterLobbyWindow'):
 
 class WindowCommon:
     def __init__(self):
+        AUMain.g_AUEvents.onDataProcessed           += self.onDataProcessed
+        
         AUMain.g_AUEvents.onModsProcessingStart     += self.onModsProcessingStart
-        AUMain.g_AUEvents.onModsDataProcessed       += self.onModsDataProcessed
         AUMain.g_AUEvents.onModsProcessingDone      += self.onModsProcessingDone
         
         AUMain.g_AUEvents.onDepsProcessingStart     += self.onDepsProcessingStart
-        AUMain.g_AUEvents.onDepsDataProcessed       += self.onDepsDataProcessed
         AUMain.g_AUEvents.onDepsProcessingDone      += self.onDepsProcessingDone
         
         AUMain.g_AUEvents.onDeletingStart           += self.onDeletingStart
-        AUMain.g_AUEvents.onDeletingProcessed       += self.onDeletingProcessed
         AUMain.g_AUEvents.onDeletingDone            += self.onDeletingDone
         
         AUMain.g_AUEvents.onFilesProcessingStart    += self.onFilesProcessingStart
         AUMain.g_AUEvents.onModFilesProcessingStart += self.onModFilesProcessingStart
-        AUMain.g_AUEvents.onModFilesDataProcessed   += self.onModFilesDataProcessed
         AUMain.g_AUEvents.onModFilesProcessingDone  += self.onModFilesProcessingDone
         AUMain.g_AUEvents.onFilesProcessingDone     += self.onFilesProcessingDone
         
-        self.countMods     = 0
-        self.processedMods = 0
+        self.itemsCount     = 0
+        self.itemsProcessed = 0
     
     def createWindow(self, handler):
         self.closeWindow()
@@ -203,147 +168,120 @@ class WindowCommon:
         if window is not None:
             window.onWindowClose()
     
-    def getWindowStatus(self, respType, isStartProc):
+    def getWindowStatus(self, isStartProc):
         key = 'procStart' if isStartProc else 'procDone'
-        return g_AUGUIShared.getTitle(key, respType)
+        return g_AUGUIShared.getTitle(key)
     
-    def getWindowTitle(self, respType, isStartProc):
+    def getWindowTitle(self, isStartProc):
         mainTitle = g_AUGUIShared.getTitle('main')
         
-        status = self.getWindowStatus(respType, isStartProc)
+        status = self.getWindowStatus(isStartProc)
         if status:
             mainTitle += ': ' + status
         
         return mainTitle
     
-    def onModsProcessingStart(self):
-        respType = AUMain.ResponseType.index('GET_MODS_LIST')
-        
-        title  = self.getWindowTitle( respType, True)
-        status = self.getWindowStatus(respType, True)
-        
-        window = AUMain.g_AUShared.window
-        if window is None: return
-        
-        window.setTitle(title)
-        window.setStatus('MODS_LIST', status)
-        window.setRawProgress('MODS_LIST_DATA', 0)
-    
-    def onModsDataProcessed(self, processed, total, unit):
+    def onDataProcessed(self, responseType, processed, total, unit):
+        if isinstance(unit, int):
+            unit = AUMain.DataUnits.__getattr__(unit)
         window = AUMain.g_AUShared.window
         if window is not None:
-            window.setProgress('MODS_LIST_DATA', processed, total, unit)
+            window.setProgress(AUMain.Resp2ProgressTypeMap[int(responseType)], processed, total, unit)
     
-    def onModsProcessingDone(self):
-        respType = AUMain.ResponseType.index('GET_MODS_LIST')
+    def onModsProcessingStart(self):
+        title  = self.getWindowTitle(True)
+        status = self.getWindowStatus(True)
         
         window = AUMain.g_AUShared.window
         if window is None: return
         
-        title  = self.getWindowTitle( respType, False)
-        status = self.getWindowStatus(respType, False)
+        window.setTitle(title)
+        window.setStatus(status)
+        window.setRawProgress(AUMain.ProgressType.ModsListData, 0)
+    
+    def onModsProcessingDone(self):
+        window = AUMain.g_AUShared.window
+        if window is None: return
+        
+        title  = self.getWindowTitle(False)
+        status = self.getWindowStatus(False)
         
         window.setTitle(title)
-        window.setStatus('MODS_LIST', htmlMsg(status, color='228b22'))
-        window.setRawProgress('MODS_LIST_DATA', 100)
+        window.setStatus(htmlMsg(status, color='228b22'))
+        window.setRawProgress(AUMain.ProgressType.ModsListData, 100)
         
         exp_time = AUMain.g_AUShared.exp_time
         if exp_time:
             window.setExpTime('%s %s'%(g_AUGUIShared.getMsg('expires'), g_AUGUIShared.exp_time(exp_time)))
     
     def onDepsProcessingStart(self):
-        respType = AUMain.ResponseType.index('GET_DEPS')
-        
-        title  = self.getWindowTitle( respType, True)
-        status = self.getWindowStatus(respType, True)
+        title  = self.getWindowTitle(True)
+        status = self.getWindowStatus(True)
         
         window = AUMain.g_AUShared.window
         if window is None: return
         
         window.setTitle(title)
-        window.setStatus('DEPS', status)
-        window.setRawProgress('MODS_LIST_DATA', 0)
-    
-    def onDepsDataProcessed(self, processed, total, unit):
-        window = AUMain.g_AUShared.window
-        if window is not None:
-            window.setProgress('MODS_LIST_DATA', processed, total, unit)
+        window.setStatus(status)
+        window.setRawProgress(AUMain.ProgressType.ModsListData, 0)
     
     def onDepsProcessingDone(self):
-        respType = AUMain.ResponseType.index('GET_DEPS')
-        
         window = AUMain.g_AUShared.window
         if window is None: return
         
-        title  = self.getWindowTitle( respType, False)
-        status = self.getWindowStatus(respType, False)
+        title  = self.getWindowTitle(False)
+        status = self.getWindowStatus(False)
         
         window.setTitle(title)
-        window.setStatus('DEPS', htmlMsg(status, color='228b22'))
-        window.setRawProgress('MODS_LIST_DATA', 100)
+        window.setStatus(htmlMsg(status, color='228b22'))
+        window.setRawProgress(AUMain.ProgressType.ModsListData, 100)
     
     def onDeletingStart(self, count):
-        respType = AUMain.ResponseType.index('DEL_FILES')
-        
-        title  = self.getWindowTitle( respType, True)
-        status = self.getWindowStatus(respType, True)
+        title  = self.getWindowTitle(True)
+        status = self.getWindowStatus(True)
         
         window = AUMain.g_AUShared.window
         if window is None: return
         
         window.setTitle(title)
-        window.setStatus('DEL', status)
-        window.setRawProgress('FILES_DATA', 0)
-        window.setProgress('FILES_TOTAL', 0, count, g_AUGUIShared.getMsg('mods'))
-    
-    def onDeletingProcessed(self, processed, total, unit):
-        window = AUMain.g_AUShared.window
-        if window is not None:
-            window.setProgress('FILES_DATA', processed, total, unit)
+        window.setStatus(status)
+        window.setRawProgress(AUMain.ProgressType.FilesData, 0)
+        window.setProgress(AUMain.ProgressType.FilesTotal, 0, count, g_AUGUIShared.getMsg('mods'))
     
     def onDeletingDone(self, deleted, count):
-        respType = AUMain.ResponseType.index('GET_FILES')
-        
-        title  = self.getWindowTitle( respType, False)
-        status = self.getWindowStatus(respType, False)
+        title  = self.getWindowTitle(False)
+        status = self.getWindowStatus(False)
         
         window = AUMain.g_AUShared.window
         if window is None: return
         
         window.setTitle(title)
-        window.setStatus('FILES', htmlMsg(status, color='228b22'))
-        window.setRawProgress('FILES_DATA', 100)
-        window.setProgress('FILES_TOTAL', deleted, count, g_AUGUIShared.getMsg('mods'))
+        window.setStatus(htmlMsg(status, color='228b22'))
+        window.setRawProgress(AUMain.ProgressType.FilesData, 100)
+        window.setProgress(AUMain.ProgressType.FilesTotal, deleted, count, g_AUGUIShared.getMsg('mods'))
     
     def onFilesProcessingStart(self, count):
-        self.processedMods = 0
-        self.countMods     = count
-        
-        respType = AUMain.ResponseType.index('GET_FILES')
+        self.itemsProcessed = 0
+        self.itemsCount     = count
         
         window = AUMain.g_AUShared.window
         if window is None: return
         
-        title  = self.getWindowTitle( respType, True)
-        status = self.getWindowStatus(respType, True)
+        title  = self.getWindowTitle(True)
+        status = self.getWindowStatus(True)
         
         window.setTitle(title)
-        window.setStatus('FILES', status)
-        window.setRawProgress('FILES_DATA', 0)
-        window.setProgress('FILES_TOTAL', self.processedMods, self.countMods, g_AUGUIShared.getMsg('mods'))
+        window.setStatus(status)
+        window.setRawProgress(AUMain.ProgressType.FilesData, 0)
+        window.setProgress(AUMain.ProgressType.FilesTotal, self.itemsProcessed, self.itemsCount, g_AUGUIShared.getMsg('mods'))
     
     def onModFilesProcessingStart(self, name, isDependency):
         window = AUMain.g_AUShared.window
         if window is None: return
         
         key = 'dep' if isDependency else 'mod'
-        window.writeFilesText('%s. %s'%(self.processedMods + 1, g_AUGUIShared.getMsg(key)%(name)))
-        window.setRawProgress('FILES_DATA', 0)
-    
-    def onModFilesDataProcessed(self, processed, total, unit):
-        window = AUMain.g_AUShared.window
-        if window is not None:
-            window.setProgress('FILES_DATA', processed, total, unit)
+        window.writeFilesText('%s. %s'%(self.itemsProcessed + 1, g_AUGUIShared.getMsg(key)%(name)))
+        window.setRawProgress(AUMain.ProgressType.FilesData, 0)
     
     def onModFilesProcessingDone(self, mod, err, code=0):
         window = AUMain.g_AUShared.window
@@ -351,7 +289,7 @@ class WindowCommon:
             color = None
             msg = ''
             
-            if   err == AUMain.ErrorCode.index('SUCCESS'):
+            if err == AUMain.ErrorCode.Success:
                 color = '228b22'
                 
                 if mod.needToDelete['file'] or mod.needToDelete['dir']:
@@ -363,28 +301,27 @@ class WindowCommon:
                     msg = g_AUGUIShared.getMsg(key)%(mod.version, mod.build)
             else:
                 color = 'ff0000'
+                print ''
                 msg = g_AUGUIShared.handleServerErr(err, code)
             
             window.writeLineFilesText(htmlMsg(msg, color=color))
-            window.setRawProgress('FILES_DATA', 100)
-            window.setProgress('FILES_TOTAL', self.processedMods, self.countMods, g_AUGUIShared.getMsg('mods'))
+            window.setRawProgress(AUMain.ProgressType.FilesData, 100)
+            window.setProgress(AUMain.ProgressType.FilesTotal, self.itemsProcessed, self.itemsCount, g_AUGUIShared.getMsg('mods'))
         
-        if err == AUMain.ErrorCode.index('SUCCESS'):
-            self.processedMods += 1
+        if err == AUMain.ErrorCode.Success:
+            self.itemsProcessed += 1
     
     def onFilesProcessingDone(self):
-        respType = AUMain.ResponseType.index('GET_FILES')
-        
         window = AUMain.g_AUShared.window
         if window is None: return
         
-        title  = self.getWindowTitle( respType, False)
-        status = self.getWindowStatus(respType, False)
+        title  = self.getWindowTitle(False)
+        status = self.getWindowStatus(False)
         
         window.setTitle(title)
-        window.setStatus('FILES', htmlMsg(status, color='228b22'))
-        window.setRawProgress('FILES_DATA', 100)
-        window.setProgress('FILES_TOTAL', self.processedMods, self.countMods, g_AUGUIShared.getMsg('mods'))
+        window.setStatus(htmlMsg(status, color='228b22'))
+        window.setRawProgress(AUMain.ProgressType.FilesData, 100)
+        window.setProgress(AUMain.ProgressType.FilesTotal, self.itemsProcessed, self.itemsCount, g_AUGUIShared.getMsg('mods'))
     
     def handleErr(self, *args, **kw):
         g_AUGUIShared.handleErr(*args, **kw)
@@ -397,9 +334,9 @@ class WindowCommon:
         func = lambda proceed: BigWorld.wg_quitAndStartLauncher() if proceed else None
         
         messages_titles = {
-            'delete' : (g_AUGUIShared.getMsg('warn'),                         g_AUGUIShared.getErrMsg('DELETE_FILE')),
-            'create' : (g_AUGUIShared.getMsg('warn'),                         g_AUGUIShared.getErrMsg('CREATE_FILE')),
-            'update' : (g_AUGUIShared.getMsg('updated')%(self.processedMods), g_AUGUIShared.getMsg('updated_desc'))
+            'delete' : (g_AUGUIShared.getMsg('warn'),                          g_AUGUIShared.getErrMsg(AUMain.ErrorCode.DeleteFile)),
+            'create' : (g_AUGUIShared.getMsg('warn'),                          g_AUGUIShared.getErrMsg(AUMain.ErrorCode.CreateFile)),
+            'update' : (g_AUGUIShared.getMsg('updated')%(self.itemsProcessed), g_AUGUIShared.getMsg('updated_desc'))
         }
         
         if key is not None:
