@@ -92,7 +92,7 @@ class Shared:
                 str(ErrorCode.Connect)          : "Unable to connect to the server",
                 str(ErrorCode.RespTooSmall)     : "An error occured: got empty response",
                 str(ErrorCode.RespInvalid)      : "An error occured: got invalid response",
-                str(ErrorCode.TokenExpired)     : "Unable to prolong the token. Please contact us",
+                str(ErrorCode.TokenExpired)     : "Unable to prolong the token.\nPlease contact us",
                 str(ErrorCode.GetMods)          : "An error occured while getting mod list. Error code %s",
                 str(ErrorCode.ReadMods)         : "An error occured while reading mod list",
                 str(ErrorCode.GetDeps)          : "An error occured while getting dependencies list. Error code %s",
@@ -106,13 +106,13 @@ class Shared:
                 str(ErrorCode.DecodeModFields)  : "Got incorrect mod data",
                 str(ErrorCode.DeleteFile)       : "Unable to delete some files.\nThey will be deleted after game restart",
                 # native module errors
-                str(ErrorCode.CurlGInit)        : "CURL global initialization failed. Error code %s. Please contact us",
-                str(ErrorCode.CurlEInit)        : "CURL initialization failed. Error code %s. They will be deleted after game restart"    
+                str(ErrorCode.CurlGInit)        : "CURL global initialization failed. Error code %s.\nPlease contact us",
+                str(ErrorCode.CurlEInit)        : "CURL initialization failed. Error code %s.\nPlease contact us"    
             },
             "msg_warn" : {
                 str(WarningCode.CheckID)      : "ID was not found",
                 str(WarningCode.GetUserData)  : "You are not subscribed to Autoupdater.<br>You can subscribe it on \"https://pavel3333.ru/trajectorymod/lk\"",
-                str(WarningCode.TokenExpired) : "Unable to prolong the token. Please contact us",
+                str(WarningCode.TokenExpired) : "Unable to prolong the token.\nPlease contact us",
                 str(WarningCode.Expired)      : "Autoupdater subscription has expired.<br >You can renew the subscription on \"https://pavel3333.ru/trajectorymod/lk\"",
                 str(WarningCode.GetModDesc)   : "Mod was not found"
             },
@@ -196,7 +196,7 @@ class Shared:
         
         msg = self.handleServerErr(err, code)
         
-        if AUMain.g_AUShared.respType == AUMain.ResponseType.ModsList:
+        if AUMain.g_AUShared.respType == AUMain.ResponseType.GetModsList:
             code_key = {
                 AUMain.WarningCode.GetUserData : 'subscribe',
                 AUMain.WarningCode.Expired     : 'renew'
@@ -218,7 +218,6 @@ class Shared:
             window.setStatus(htmlMsg(self.getMsg('warn') + ' ' + msg, color='ff0000'))
     
     def handleServerErr(self, err, code):
-        print 'handleServerErr(%s, %s)'%(err, code)
         if AUMain.WarningCode.__hasattr__(code):
             return self.getWarnMsg(code)
         elif SimpleErr.__hasattr__(err):

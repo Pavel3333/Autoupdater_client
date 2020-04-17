@@ -3,7 +3,7 @@
     "name": "Autoupdater",
     "description": "Autoupdater main module",
 
-    "version": "1.0.0.0",
+    "version": "0.9.22.0",
     
     "dependencies": [
         "com.modxvm.xfw.native"
@@ -12,7 +12,7 @@
     "url": "https://pavel3333.ru/autoupdater/",
     "url_update": "https://pavel3333.ru/autoupdater/",
     
-    "wot_version_min": "1.8.0.1",
+    "wot_version_min": "1.8.0.2",
     "wot_version_exactmatch": false,
     
     "features": ["python", "native"],

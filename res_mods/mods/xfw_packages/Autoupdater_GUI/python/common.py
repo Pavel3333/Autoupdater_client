@@ -31,8 +31,8 @@ class FormatErr(AUMain.Enum):
     GetDeps  = 15
     GetFiles = 17
     # native module errors
-    CurlGInit        = 25
-    CurlEInit        = 26
+    CurlGInit = 25
+    CurlEInit = 26
 
 class GUIPaths:
     GUI_DIR = AUMain.Directory['MOD_DIR'] + 'GUI/'

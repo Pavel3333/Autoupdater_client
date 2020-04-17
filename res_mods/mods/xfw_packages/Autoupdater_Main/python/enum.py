@@ -18,6 +18,8 @@ class EnumValue:
         return self.__enumname #"%s.%s" % (self.__classname, self.__enumname)
 
     def __cmp__(self, other):
+        if isinstance(other, str):
+            return cmp(self.__enumname, other)
         return cmp(self.__value, int(other))
 
 class EnumMetaClass:
@@ -37,9 +39,10 @@ class EnumMetaClass:
         if name == '__members__':
             return True
         
-        if isinstance(name, str) and name in self.__dict:
-            return True
-        elif isinstance(name, int) and name in self.__dict.values():
+        if isinstance(name, str):
+            if name in self.__dict:
+                return True
+        elif int(name) in self.__dict.values():
             return True
         
         return any(base.__hasattr__(name) for base in self.__bases__)
@@ -50,16 +53,14 @@ class EnumMetaClass:
 
         if isinstance(name, str) and name in self.__dict:
             return self.__dict[name]
-        elif isinstance(name, int):
+        else:
             for key, value in self.__dict.iteritems():
                 if value == name:
-                    return key
+                    return value
         
         for base in self.__bases__:
             if base.__hasattr__(name):
                 return base.__getattr__(name)
-
-        raise AttributeError, name
 
     #def __repr__(self):
     #    s = self.__name__

@@ -1,64 +1,64 @@
 {
     "info": [
-        "Pavel3333 Mods Autoupdater", 
-        "Author: Pavel3333 from RAINN VOD team", 
-        "Authors YouTube channel \"RAINN VOD\"", 
-        "Authors VK Group \"RAINN VOD\""
+        "Автозагрузчик модов от Pavel3333", 
+        "Автор: Pavel3333 из команды RAINN VOD", 
+        "Авторский YouTube канал \"RAINN VOD\"", 
+        "Авторская группа ВК \"RAINN VOD\""
     ], 
     "msg": {
-        "close": "Close", 
-        "del": "Deleted", 
-        "deleted": "Deleted %s mods", 
-        "dep": "Dependency \"%s\":", 
-        "expires": "Autoupdater subscription expires after", 
-        "mod": "Mod \"%s\":", 
-        "mods": "mods", 
-        "no_upd": "Not found any updates. You are using latest version %s #%s", 
-        "not_updated": "Not found any updates", 
-        "partially": "Not all mods were updated successfully", 
-        "renew": "Renew subscription", 
-        "restart": "Restart", 
-        "subscribe": "Subscribe", 
-        "unexpected": "Unexpected error %s (%s)", 
-        "upd": "Updated to version %s #%s", 
-        "updated": "Updated %s mods", 
-        "updated_desc": "The changes will take effect after the client restarts", 
-        "warn": "Warning!"
+        "close": "Закрыть", 
+        "del": "Удалён", 
+        "deleted": "Удалено модов: %s", 
+        "dep": "Зависимость \"%s\":", 
+        "expires": "Подписка на Автозагрузчик модов истекает через", 
+        "mod": "Мод \"%s\":", 
+        "mods": "модов", 
+        "no_upd": "Нет доступных обновлений. Вы используете последнюю версию %s #%s", 
+        "not_updated": "Нет доступных обновлений", 
+        "partially": "Не все моды были установлены успешно", 
+        "renew": "Продлить подписку", 
+        "restart": "Перезагрузить", 
+        "subscribe": "Подписаться", 
+        "unexpected": "Неопознанная ошибка %s (%s)", 
+        "upd": "Обновлено до версии %s #%s", 
+        "updated": "Обновлено модов: %s", 
+        "updated_desc": "Изменения вступят в силу после перезагрузки игрового клиента", 
+        "warn": "Внимание!"
     }, 
     "msg_err": {
-        "CheckID": "An error occured while checking player ID", 
-        "Config": "An error occured while loading autoupdater config.\nPlease redownload the autoupdater", 
-        "Connect": "Unable to connect to the server", 
-        "CreateFile": "Unable to update some files.\nThey will be updated after game restart", 
-        "CreateManualFile": "Unable to update some files and copy it to manual directory.\nPlease contact us", 
-        "CurlEInit": "CURL initialization failed. Error code %s. They will be deleted after game restart", 
-        "CurlGInit": "CURL global initialization failed. Error code %s. Please contact us", 
-        "DecodeModFields": "Got incorrect mod data", 
-        "DeleteFile": "Unable to delete some files.\nThey will be deleted after game restart", 
-        "FilesNotFound": "An error occured while loading autoupdater files.\nPlease redownload the autoupdater", 
-        "GetDeps": "An error occured while getting dependencies list. Error code %s", 
-        "GetFiles": "An error occured while getting files. Error code %s", 
-        "GetModFields": "Could not get mod data", 
-        "GetMods": "An error occured while getting mod list. Error code %s", 
-        "InvalidFileSize": "Got invalid file size", 
-        "InvalidPathLen": "Got invalid path length", 
-        "LicInvalid": "License key is invalid", 
-        "LoadNative": "An error occured while loading native module.\nPlease redownload the autoupdater", 
-        "LoadXFWNative": "An error occured while loading XFW Native files.\nPlease redownload the autoupdater", 
-        "ReadDeps": "An error occured while reading dependencies list", 
-        "ReadMods": "An error occured while reading mod list", 
-        "RespInvalid": "An error occured: got invalid response", 
-        "RespTooSmall": "An error occured: got empty response", 
-        "TokenExpired": "Unable to prolong the token. Please contact us", 
-        "Translations": "An error occured while loading autoupdater translations.\nPlease redownload the autoupdater", 
-        "UnpackNative": "An error occured while unpacking native module.\nPlease redownload the autoupdater"
+        "CheckID": "Произошла ошибка во время проверки игрового ID", 
+        "Config": "Произошла ошибка во время загрузки конфигурации Автозагрузчика.\nПожалуйста, перекачайте Автозагрузчик", 
+        "Connect": "Невозможно подключиться к серверу", 
+        "CreateFile": "Невозможно обновить некоторые файлы.\nОни будут обновлены после перезапуска игры", 
+        "CreateManualFile": "Невозможно обновить некоторые файлы и скопировать их в manual-директорию.\nПожалуйста, свяжитесь с нами", 
+        "CurlEInit": "Инициализация CURL провалена. Код ошибки %s.\nПожалуйста, свяжитесь с нами", 
+        "CurlGInit": "Глобальная инициализация CURL провалена. Код ошибки %s.\nПожалуйста, свяжитесь с нам", 
+        "DecodeModFields": "Получены неверные данные о моде", 
+        "DeleteFile": "Невозможно удалить некоторые файлы.\nОни будут удалены после перезагрузки игры", 
+        "FilesNotFound": "Произошла ошибка во время загрузки файлов Автозагрузчика.\nПожалуйста, перекачайте Автозагрузчик", 
+        "GetDeps": "Произошла ошибка во время получения списка зависимостей. Код ошибки %s", 
+        "GetFiles": "Произошла ошибка во время получения файлы. Код ошибки %s", 
+        "GetModFields": "Не удалось получить данные о моде", 
+        "GetMods": "Произошла ошибка во время получения списка модов. Код ошибки %s", 
+        "InvalidFileSize": "Получен неверный размер файла", 
+        "InvalidPathLen": "Получена неверная длина пути", 
+        "LicInvalid": "Неверный лицензионный ключ", 
+        "LoadNative": "Произошла ошибка во время загрузки native-модуля.\nПожалуйста, перекачайте Автозагрузчик", 
+        "LoadXFWNative": "Произошла ошибка во время загрузки XFW Native.\nПожалуйста, перекачайте Автозагрузчик", 
+        "ReadDeps": "Произошла ошибка во время чтения списка зависимостей", 
+        "ReadMods": "Произошла ошибка во время чтения списка модов", 
+        "RespInvalid": "Произошла ошибка: получен неверный ответ", 
+        "RespTooSmall": "Произошла ошибка: получен пустой ответ", 
+        "TokenExpired": "Невозможно продлить токен.\nПожалуйста, свяжитесь с нам", 
+        "Translations": "Произошла ошибка во время загрузки переводов Автозагрузчика.\nПожалуйста, перекачайте Автозагрузчик", 
+        "UnpackNative": "Произошла ошибка во время распаковки native-модуля.\nПожалуйста, перекачайте Автозагрузчик"
     }, 
     "msg_warn": {
-        "CheckID": "ID was not found", 
-        "Expired": "Autoupdater subscription has expired.<br >You can renew the subscription on \"https://pavel3333.ru/trajectorymod/lk\"", 
-        "GetModDesc": "Mod was not found", 
-        "GetUserData": "You are not subscribed to Autoupdater.<br>You can subscribe it on \"https://pavel3333.ru/trajectorymod/lk\"", 
-        "TokenExpired": "Unable to prolong the token. Please contact us"
+        "CheckID": "ID не найден", 
+        "Expired": "Подписка на Автозагрузчик истекла.<br>Вы можете продлить подписку по ссылке: \"https://pavel3333.ru/trajectorymod/lk\"", 
+        "GetModDesc": "Мод не найден", 
+        "GetUserData": "Вы не подписаны на Автозагрузчик.<br>Вы можете подписаться на Автозагрузчик по ссылке: \"https://pavel3333.ru/trajectorymod/lk\"", 
+        "TokenExpired": "Невозможно продлить токен.\nПожалуйста, свяжитесь с нам"
     }, 
     "times_en": [
         "month", 
@@ -68,37 +68,37 @@
     ], 
     "times_ru": [
         [
-            "months", 
-            "days", 
-            "hours", 
-            "minutes"
+            "месяцев", 
+            "дней", 
+            "часов", 
+            "минут"
         ], 
         [
-            "month", 
-            "day", 
-            "hour", 
-            "minute"
+            "месяц", 
+            "день", 
+            "час", 
+            "минута"
         ], 
         [
-            "month", 
-            "day", 
-            "hour", 
-            "minute"
+            "месяца", 
+            "дня", 
+            "часа", 
+            "минуты"
         ]
     ], 
     "titles": {
-        "main": "Autoupdater", 
+        "main": "Автозагрузчик", 
         "procDone": {
-            "DelFiles": "Deleting old files done", 
-            "GetDeps": "Getting dependicies list done", 
-            "GetFiles": "Getting files done", 
-            "GetModsList": "Getting mods list done"
+            "DelFiles": "Удаление старых файлов завершено", 
+            "GetDeps": "Получение списка зависимостей завершено", 
+            "GetFiles": "Получение файлов завершено", 
+            "GetModsList": "Получение списка модов завершено"
         }, 
         "procStart": {
-            "DelFiles": "Deleting old files...", 
-            "GetDeps": "Getting dependicies list...", 
-            "GetFiles": "Getting files...", 
-            "GetModsList": "Getting mods list..."
+            "DelFiles": "Удаление старых файлов...", 
+            "GetDeps": "Получение списка зависимостей...", 
+            "GetFiles": "Получение файлов...", 
+            "GetModsList": "Получение списка модов..."
         }
     }
 }

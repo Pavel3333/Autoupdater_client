@@ -137,7 +137,7 @@ class Autoupdater:
         for modID in mods:
             mod = g_AUShared.mods[modID] = Mod(mods[modID])
             if mod.fail_err != ErrorCode.Success:
-                g_AUShared.fail(resp.fail_err, resp.fail_code)
+                g_AUShared.fail(mod.fail_err, mod.fail_code)
                 return
             mod.parseTree('./', mod.tree)
             
@@ -190,8 +190,6 @@ class Autoupdater:
             reverse = True
         )
         
-        print 'toDelete:', toDelete
-        
         self.delFiles(toDelete)
         self.getFiles()
         
@@ -231,8 +229,9 @@ class Autoupdater:
                     g_AUShared.undeletedPaths.append(path)
                     g_AUShared.logger.log('Unable to delete file %s (errno %s)'%(path, exc.errno))
                 except:
+                    import traceback
                     g_AUShared.undeletedPaths.append(path)
-                    g_AUShared.logger.log('Unable to delete file %s'%(path))
+                    g_AUShared.logger.log('Unable to delete file %s:\n%s'%(path, traceback.format_exc()))
             #else:
             #    g_AUShared.logger.log('File %s is not exists'%(path))
         
@@ -248,8 +247,9 @@ class Autoupdater:
                     g_AUShared.fail(ErrorCode.DeleteFile, exc.errno)
                     break
                 except:
+                    import traceback
                     g_AUShared.undeletedPaths.append(path)
-                    g_AUShared.logger.log('Unable to delete directory %s'%(path))
+                    g_AUShared.logger.log('Unable to delete directory %s:\n%s'%(path, traceback.format_exc()))
                     g_AUShared.fail(ErrorCode.DeleteFile, exc.errno)
                     break
             #else:
@@ -269,8 +269,6 @@ class Autoupdater:
         
         g_AUShared.respType = ResponseType.GetFiles
         
-        print 'token before getting files:', type(g_AUShared.token), g_AUShared.token
-        
         mods = g_AUShared.mods.copy()
         mods.update(g_AUShared.dependencies)
         
@@ -285,7 +283,7 @@ class Autoupdater:
     def hookFini(self):
         if self.finiHooked: return
         
-        print 'hooking fini...'
+        g_AUShared.logger.log('hooking fini...')
         
         try:
             import game
@@ -293,10 +291,11 @@ class Autoupdater:
             game.fini = lambda *args: self.onGameFini(_game__fini, *args)
             self.finiHooked = True
         except:
-            g_AUShared.logger.log('Unable to hook fini')
+            import traceback
+            g_AUShared.logger.log('Unable to hook fini:\n%s'%(traceback.format_exc()))
     
     def onGameFini(self, func, *args):
-        print 'starting helper process...'
+        g_AUShared.logger.log('starting helper process...')
         
         import subprocess
         DETACHED_PROCESS = 0x00000008

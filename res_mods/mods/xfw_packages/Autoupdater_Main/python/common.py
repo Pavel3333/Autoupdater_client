@@ -1,6 +1,11 @@
 from .enum import *
 __all__ = ('LangID', 'AUTH_REALM', 'DEBUG', 'ErrorCode', 'WarningCode', 'ResponseType', 'DataUnits', 'ProgressType', 'Resp2ProgressTypeMap', 'Error', 'getJSON', 'checkSeqs', 'Constants', 'Directory', 'Paths', 'getLevels', 'Event', 'DeleteExclude', 'Mod')
 
+import json
+
+from os.path import exists
+from hashlib import md5
+
 class LangID(Enum):
     RU = 0
     EU = 1
@@ -114,10 +119,6 @@ class Error(object):
         return self.__slots__
 
 def getJSON(path, pattern):
-    import json
-    
-    from os.path import exists
-    
     try:
         raw = {}
         
@@ -216,14 +217,8 @@ DeleteExclude = {
     }
 }
 
-import json
-
-from os      import makedirs
-from os.path import exists
-from hashlib import md5
-
 class Mod(Error):
-    __slots__ = { 'needToUpdate', 'needToDelete', 'id', 'enabled', 'name', 'description', 'version', 'build', 'tree', 'names', 'hashes', 'dependencies' }
+    __slots__ = { 'needToUpdate', 'needToDelete', 'id', 'enabled', 'name', 'description', 'version', 'build', 'tree', 'paths_delete', 'names', 'hashes', 'dependencies' }
     
     def __init__(self, mod):
         super(Mod, self).__init__()
@@ -250,13 +245,19 @@ class Mod(Error):
             return
         
         try:
-            self.tree   = json.loads(mod['tree'])
-            self.names  = json.loads(mod['names'])
-            self.hashes = json.loads(mod['hashes'])
+            self.tree         = json.loads(mod['tree'])
+            self.paths_delete = json.loads(mod['paths_delete'])
+            self.names        = json.loads(mod['names'])
+            self.hashes       = json.loads(mod['hashes'])
             if 'dependencies' in mod:
                 self.dependencies = json.loads(mod['dependencies'])
         except:
             self.fail(ErrorCode.DecodeModFields)
+            return
+        
+        for path in self.paths_delete:
+            if exists(path):
+                self.needToDelete['file'].add(path)
     
     def parseTree(self, path, curr_dic):
         for ID in curr_dic:
@@ -283,7 +284,6 @@ class Mod(Error):
                     self.needToUpdate['file'].add(subpath)
             else:
                 if self.enabled and not exists(subpath):
-                    print 'dir not exists:', subpath
                     self.needToUpdate['dir'].add(subpath)
                 elif not self.enabled and exists(subpath):
                     self.needToDelete['dir'].add(subpath)

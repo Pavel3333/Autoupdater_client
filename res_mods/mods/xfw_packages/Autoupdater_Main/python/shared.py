@@ -124,7 +124,9 @@ class Shared(Error):
             
             self.logger.log('Dump data was saved to', Directory['DUMP_DIR'] + dump['name'])
         except:
-            self.logger.log('Unable to save dump data')
+            import traceback
+            self.logger.log('Unable to save dump data:\n%s'%(traceback.format_exc()))
+            
      
     def handleErr(self, *args, **kw):
         if self.windowCommon is not None:

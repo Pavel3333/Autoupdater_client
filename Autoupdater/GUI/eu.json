@@ -26,32 +26,39 @@
         "warn": "Warning!"
     }, 
     "msg_err": {
-        "CHECKING_ID": "An error occured while checking player ID", 
-        "CONFIG": "An error occured while loading autoupdater config.\nPlease redownload the autoupdater", 
-        "CONNECT": "Unable to connect to the server", 
-        "CREATE_FILE": "Unable to update some files.\nThey will be updated after game restart", 
-        "CREATE_FILE_MANUAL": "Unable to update some files and copy it to manual directory.\nPlease contact us", 
-        "DECODE_MOD_FIELDS": "Getted incorrect mod data", 
-        "DELETE_FILE": "Unable to delete some files.\nThey will be deleted after game restart", 
-        "FILES_NOT_FOUND": "An error occured while loading autoupdater files.\nPlease redownload the autoupdater", 
-        "GETTING_DEPS": "An error occured while getting dependencies list. Error code %s", 
-        "GETTING_FILES": "An error occured while getting files. Error code %s", 
-        "GETTING_MODS": "An error occured while getting mod list. Error code %s", 
-        "INVALID_FILE_SIZE": "Got invalid file size", 
-        "LIC_INVALID": "License key is invalid", 
-        "READING_DEPS": "An error occured while reading dependencies list", 
-        "READING_MODS": "An error occured while reading mod list", 
-        "RESP_SIZE_INVALID": "An error occured: getted invalid response", 
-        "RESP_TOO_SMALL": "An error occured: getted empty response", 
-        "TRANSLATIONS": "An error occured while loading autoupdater translations.\nPlease redownload the autoupdater"
+        "CheckID": "An error occured while checking player ID", 
+        "Config": "An error occured while loading autoupdater config.\nPlease redownload the autoupdater", 
+        "Connect": "Unable to connect to the server", 
+        "CreateFile": "Unable to update some files.\nThey will be updated after game restart", 
+        "CreateManualFile": "Unable to update some files and copy it to manual directory.\nPlease contact us", 
+        "CurlEInit": "CURL initialization failed. Error code %s.\nPlease contact us", 
+        "CurlGInit": "CURL global initialization failed. Error code %s.\nPlease contact us", 
+        "DecodeModFields": "Got incorrect mod data", 
+        "DeleteFile": "Unable to delete some files.\nThey will be deleted after game restart", 
+        "FilesNotFound": "An error occured while loading autoupdater files.\nPlease redownload the autoupdater", 
+        "GetDeps": "An error occured while getting dependencies list. Error code %s", 
+        "GetFiles": "An error occured while getting files. Error code %s", 
+        "GetModFields": "Could not get mod data", 
+        "GetMods": "An error occured while getting mod list. Error code %s", 
+        "InvalidFileSize": "Got invalid file size", 
+        "InvalidPathLen": "Got invalid path length", 
+        "LicInvalid": "License key is invalid", 
+        "LoadNative": "An error occured while loading native module.\nPlease redownload the autoupdater", 
+        "LoadXFWNative": "An error occured while loading XFW Native.\nPlease redownload the autoupdater", 
+        "ReadDeps": "An error occured while reading dependencies list", 
+        "ReadMods": "An error occured while reading mod list", 
+        "RespInvalid": "An error occured: got invalid response", 
+        "RespTooSmall": "An error occured: got empty response", 
+        "TokenExpired": "Unable to prolong the token.\nPlease contact us", 
+        "Translations": "An error occured while loading autoupdater translations.\nPlease redownload the autoupdater", 
+        "UnpackNative": "An error occured while unpacking native module.\nPlease redownload the autoupdater"
     }, 
     "msg_warn": {
-        "CHECKING_ID": "Unable to check player ID", 
-        "ID_NOT_FOUND": "ID was not found", 
-        "LIC_INVALID": "Invalid license key", 
-        "MOD_NOT_FOUND": "Mod was not found", 
-        "TIME_EXPIRED": "Autoupdater subscription has expired.<br >You can renew the subscription on \"https://pavel3333.ru/trajectorymod/lk\"", 
-        "USER_NOT_FOUND": "You are not subscribed to Autoupdater.<br>You can subscribe it on \"https://pavel3333.ru/trajectorymod/lk\""
+        "CheckID": "ID was not found", 
+        "Expired": "Autoupdater subscription has expired.<br>You can renew the subscription on \"https://pavel3333.ru/trajectorymod/lk\"", 
+        "GetModDesc": "Mod was not found", 
+        "GetUserData": "You are not subscribed to Autoupdater.<br>You can subscribe it on \"https://pavel3333.ru/trajectorymod/lk\"", 
+        "TokenExpired": "Unable to prolong the token.\nPlease contact us"
     }, 
     "times_en": [
         "month", 
@@ -82,16 +89,16 @@
     "titles": {
         "main": "Autoupdater", 
         "procDone": {
-            "DEL_FILES": "Deleting old files done", 
-            "GET_DEPS": "Getting dependicies list done", 
-            "GET_FILES": "Getting files done", 
-            "GET_MODS_LIST": "Getting mods list done"
+            "DelFiles": "Deleting old files done", 
+            "GetDeps": "Getting dependicies list done", 
+            "GetFiles": "Getting files done", 
+            "GetModsList": "Getting mods list done"
         }, 
         "procStart": {
-            "DEL_FILES": "Deleting old files...", 
-            "GET_DEPS": "Getting dependicies list...", 
-            "GET_FILES": "Getting files...", 
-            "GET_MODS_LIST": "Getting mods list..."
+            "DelFiles": "Deleting old files...", 
+            "GetDeps": "Getting dependicies list...", 
+            "GetFiles": "Getting files...", 
+            "GetModsList": "Getting mods list..."
         }
     }
 }

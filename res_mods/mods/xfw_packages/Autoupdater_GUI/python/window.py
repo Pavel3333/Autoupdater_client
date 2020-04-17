@@ -301,7 +301,6 @@ class WindowCommon:
                     msg = g_AUGUIShared.getMsg(key)%(mod.version, mod.build)
             else:
                 color = 'ff0000'
-                print ''
                 msg = g_AUGUIShared.handleServerErr(err, code)
             
             window.writeLineFilesText(htmlMsg(msg, color=color))
