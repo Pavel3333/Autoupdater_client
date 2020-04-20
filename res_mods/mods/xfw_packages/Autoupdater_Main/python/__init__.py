@@ -1,4 +1,5 @@
 from .enum     import *
+from .hooks    import *
 from .common   import *
 from .packet   import *
 from .request  import *
@@ -32,7 +33,6 @@ class Autoupdater:
         self.showGUI         = False
         self.unpackAfterFini = False
         self.deleteAfterFini = False
-        self.finiHooked      = False
         
         import xfw_loader.python as loader
        
@@ -201,10 +201,10 @@ class Autoupdater:
     def onModsUpdated(self, updated):
         if self.deleteAfterFini:
             key = 'delete'
-            self.hookFini()
+            hookFini()
         elif self.unpackAfterFini:
             key = 'create'
-            self.hookFini()
+            hookFini()
         elif updated:
             key = 'update'
         else:
@@ -284,29 +284,6 @@ class Autoupdater:
             )
         )
         self.module.get_files(mods_count)
-    
-    def hookFini(self):
-        if self.finiHooked: return
-        
-        g_AUShared.logger.log('hooking fini...')
-        
-        try:
-            import game
-            _game__fini = game.fini
-            game.fini = lambda *args: self.onGameFini(_game__fini, *args)
-            self.finiHooked = True
-        except:
-            import traceback
-            g_AUShared.logger.log('Unable to hook fini:\n%s'%(traceback.format_exc()))
-    
-    def onGameFini(self, func, *args):
-        g_AUShared.logger.log('starting helper process...')
-        
-        import subprocess
-        DETACHED_PROCESS = 0x00000008
-        subprocess.Popen(Paths.EXE_HELPER_PATH, creationflags=DETACHED_PROCESS) # shell=True, 
-        
-        func(*args)
 
 if not BattleReplay.isPlaying():
     g_Autoupdater = Autoupdater()

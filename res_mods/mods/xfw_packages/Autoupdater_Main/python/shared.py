@@ -48,6 +48,8 @@ class Shared(Error):
     def __init__(self):
         super(Shared, self).__init__()
         
+        self.finiHooked = False
+        
         self.ID       = None
         self.lic_key  = None
         self.exp_time = None
