@@ -1,3 +1,4 @@
+from .common import *
 from .shared import *
 
 __all__ = ('hookFini', )
