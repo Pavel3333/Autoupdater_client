@@ -14,6 +14,6 @@ if xfwnative is None:
 if not xfwnative.unpack_native(MOD_ID):
     error('Unable to unpack native. Please contact us')
 
-native_module = xfwnative.load_native(self.MOD_ID, MOD_NAME + '.pyd', MOD_NAME)
+native_module = xfwnative.load_native(MOD_ID, MOD_NAME + '.pyd', MOD_NAME)
 if not native_module:
     error('Unable to load native module')
