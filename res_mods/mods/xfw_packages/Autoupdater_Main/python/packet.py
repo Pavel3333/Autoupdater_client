@@ -45,9 +45,6 @@ class StreamPacket(Error):
     def slots(self):
         return super(StreamPacket, self).slots()
     
-    def dict(self):
-        return dict((slot, getattr(self, slot, None)) for slot in self.slots())
-    
     def bin(self):
         return self.debug_data
     

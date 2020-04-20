@@ -29,6 +29,7 @@ class Autoupdater:
             if not exists(directory):
                 makedirs(directory)
         
+        self.showGUI         = False
         self.unpackAfterFini = False
         self.deleteAfterFini = False
         self.finiHooked      = False
@@ -52,12 +53,16 @@ class Autoupdater:
         g_playerEvents.onAccountShowGUI += self.getID
     
     def getID(self, ctx, *args):
-        g_AUShared.ID = ctx.get('databaseID', 0)
+        ID = ctx.get('databaseID', 0)
         
-        if not g_AUShared.ID:
+        if not ID:
             g_AUShared.fail(ErrorCode.CheckID)
             return
-            
+        
+        if ID != g_AUShared.ID:
+            self.showGUI = True
+            g_AUShared.ID = ID
+        
         lic_path = Paths.LIC_PATH%(g_AUShared.ID^0xb7f5cba9)
         if not exists(lic_path):
             g_AUShared.fail(ErrorCode.FilesNotFound)
@@ -84,7 +89,7 @@ class Autoupdater:
         
         if not g_AUShared.check(): return
         
-        if g_AUShared.windowCommon is not None:
+        if self.showGUI and g_AUShared.config['enable_GUI'] and g_AUShared.windowCommon is not None:
             if g_AUShared.windowCommon.createWindow(self.getModsList) is not None:
                 return
         

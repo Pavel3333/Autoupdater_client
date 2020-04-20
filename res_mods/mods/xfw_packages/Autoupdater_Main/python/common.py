@@ -1,5 +1,5 @@
 from .enum import *
-__all__ = ('LangID', 'AUTH_REALM', 'DEBUG', 'ErrorCode', 'WarningCode', 'ResponseType', 'DataUnits', 'ProgressType', 'Resp2ProgressTypeMap', 'Error', 'getJSON', 'checkSeqs', 'Constants', 'Directory', 'Paths', 'getLevels', 'Event', 'DeleteExclude', 'Mod')
+__all__ = ('LangID', 'AUTH_REALM', 'DEBUG', 'ErrorCode', 'WarningCode', 'ResponseType', 'DataUnits', 'ProgressType', 'Resp2ProgressTypeMap', 'parseToJSON', 'Error', 'getJSON', 'checkSeqs', 'Constants', 'Directory', 'Paths', 'getLevels', 'Event', 'DeleteExclude', 'Mod')
 
 import json
 
@@ -98,6 +98,16 @@ Resp2ProgressTypeMap = {
     int(ResponseType.GetFiles)    : ProgressType.FilesData
 }
 
+def parseToJSON(obj):
+    if isinstance(obj, dict):
+        for key, value in obj.iteritems():
+            obj[key] = parseToJSON(value)
+    if  isinstance(obj, set) or \
+        isinstance(obj, frozenset) or \
+        isinstance(obj, tuple):
+        obj = list(obj)
+    return obj
+
 class Error(object):
     __slots__ = { 'fail_err', 'fail_code' }
     
@@ -117,6 +127,10 @@ class Error(object):
     
     def slots(self):
         return self.__slots__
+    
+    def dict(self):
+        return dict((slot, parseToJSON(getattr(self, slot, None))) for slot in self.slots())
+
 
 def getJSON(path, pattern):
     try:
@@ -291,7 +305,4 @@ class Mod(Error):
                 self.parseTree(subpath + '/', curr_dic[ID])
     
     def slots(self):
-        return super(Mod, self).slots() | self.__slots__ - {'needToUpdate', 'needToDelete'}
-    
-    def dict(self):
-        return dict((slot, getattr(self, slot, None)) for slot in self.slots())
+        return super(Mod, self).slots() | self.__slots__
