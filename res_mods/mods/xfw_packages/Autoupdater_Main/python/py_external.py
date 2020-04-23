@@ -88,25 +88,6 @@ class Event(object):
         self.queue.append(func)
         return self
 
-def onGameFini(func, *args):
-    native_module.g_AUShared.logger.log('starting helper process...')
-    
-    import subprocess
-    DETACHED_PROCESS = 0x00000008
-    subprocess.Popen(native_module.Paths.EXE_HELPER_PATH, creationflags=DETACHED_PROCESS) # shell=True, 
-    
-    func(*args)
-
-def hookFini():
-    if native_module.g_AUShared.finiHooked: return
-    
-    native_module.g_AUShared.logger.log('hooking fini...')
-    
-    try:
-        import game
-        _game__fini = game.fini
-        game.fini = lambda *args: onGameFini(_game__fini, *args)
-        native_module.g_AUShared.finiHooked = True
-    except:
-        import traceback
-        native_module.g_AUShared.logger.log('Unable to hook fini:\n%s'%(traceback.format_exc()))
+def hookMethod(cls, method, new_method, *args):
+    old_method = getattr(cls, method)
+    setattr(cls, method, lambda *args: new_method(old_method, *args))

@@ -13,6 +13,7 @@
         "expires": "Autoupdater subscription expires after", 
         "mod": "Mod \"%s\":", 
         "mods": "mods", 
+        "files": "файлов", 
         "no_upd": "Not found any updates. You are using latest version %s #%s", 
         "not_updated": "Not found any updates", 
         "partially": "Not all mods were updated successfully", 
