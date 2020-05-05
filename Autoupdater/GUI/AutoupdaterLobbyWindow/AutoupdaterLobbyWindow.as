@@ -41,11 +41,11 @@
 			// apply window settings and invalidate main window size and size of inherited elements
 			var _settings:Object      = settings;
 			this.window.title         = _settings.window.title;
-			this.window.width         = _settings.window.width;
-			this.window.height        = _settings.window.height;
+			this.width                = _settings.window.width + 18;
+			this.height               = _settings.window.height - 50;
 			this.window.useBottomBtns = true;
-			this.window.invalidate();
-			this.invalidate();
+			//this.window.invalidate();
+			//this.invalidate();
 			
 			
 			// init progress bar values
@@ -93,11 +93,13 @@
 			this.autoupdRestartBtn.setActualSize(_settings.autoupdRestartBtn.width, _settings.autoupdRestartBtn.height);
 			this.autoupdRestartBtn.addEventListener(MouseEvent.CLICK, this.restartClick);
 			this.autoupdRestartBtn.label = _settings.autoupdRestartBtn.label;
+			this.autoupdRestartBtn.y = this.height - 21;
 			
 			// setup close button
 			this.autoupdCloseBtn.setActualSize(_settings.autoupdCloseBtn.width, _settings.autoupdCloseBtn.height);
 			this.autoupdCloseBtn.addEventListener(MouseEvent.CLICK, this.cancelClick);
 			this.autoupdCloseBtn.label = _settings.autoupdCloseBtn.label;
+			this.autoupdCloseBtn.y = this.height - 21;
 		}
 		
 		public function as_setExpTime(text: String): void {
