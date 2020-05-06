@@ -1,7 +1,5 @@
 from .enum import *
 
-print 'Autoupdater_Main: py_external'
-
 class LangID(Enum):
     RU = 0
     EU = 1
