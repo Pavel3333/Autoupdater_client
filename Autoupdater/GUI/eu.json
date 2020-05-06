@@ -36,7 +36,7 @@
         "CurlGInit": "CURL global initialization failed. Error code %s.\nPlease contact us", 
         "DecodeModFields": "Got incorrect mod data", 
         "DeleteFile": "Unable to delete some files.\nThey will be deleted after game restart", 
-        "FilesNotFound": "An error occured while loading autoupdater files.\nPlease redownload the autoupdater", 
+        "LicNotFound": "License key was not found.\nPlease redownload the autoupdater", 
         "GetDeps": "An error occured while getting dependencies list. Error code %s", 
         "GetFiles": "An error occured while getting files. Error code %s", 
         "GetModFields": "Could not get mod data", 
