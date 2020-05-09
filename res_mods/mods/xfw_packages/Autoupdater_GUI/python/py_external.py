@@ -7,7 +7,7 @@ class SimpleErr(Enum):
     UnpackNative     = 4
     LoadNative       = 5
     CheckID          = 6
-    FilesNotFound    = 7
+    LicNotFound      = 7
     LicInvalid       = 8
     Connect          = 9
     RespTooSmall     = 10
