@@ -145,7 +145,7 @@ class Event(object):
         self.queue.append(func)
         return self
 
-def hookMethod(cls, method, new_method, *args):
+def hookMethod(cls, method, new_method):
     old_method = getattr(cls, method)
     setattr(cls, method, lambda *args: new_method(old_method, *args))
 # Author: Ekspoint
@@ -177,18 +177,24 @@ class DialogButtons(object):
             self._close(self.close, False)]
 
 class SimpleDialog(object):
-    def openUrlUp(self, url=None):
+    def openUrlUp(self, url):
         if url is not None:
             return BigWorld.wg_openWebBrowser(url)
     
     def _close(self, title=None, message=None, close=None):
         return showDialog(SimpleDialogMeta(title=title, message=message, buttons=DialogButtons(close=close)), None)
     
-    def _submit(self, title=None, message=None, submit=None, close=None, url=None, func=None):
-        if func is None:
-            func = lambda proceed: self.openUrlUp(url) if proceed else None
+    def _submit(self, title=None, message=None, submit=None, close=None, url=None, func_proceed=None, handler=None):
+        def _handler(proceed):
+            if proceed:
+                if url is not None and func_proceed is None:
+                    self.openUrlUp(url)
+                elif func_proceed is not None:
+                    func_proceed()
+            if handler is not None:
+                handler()
         
-        return showDialog(SimpleDialogMeta(title=title, message=message, buttons=DialogButtons(submit=submit, close=close)), func)
+        return showDialog(SimpleDialogMeta(title=title, message=message, buttons=DialogButtons(submit=submit, close=close)), _handler)
 
 import json
 import platform
@@ -280,7 +286,7 @@ class Constants:
     MOD_NAME = 'Autoupdater'
     MOD_ID   = 'com.pavel3333.' + MOD_NAME
 
-    AUTOUPDATER_URL = 'https://api.pavel3333.ru/autoupdate.php'
+    AUTOUPDATER_URL = 'https://api.pavel3333.ru/loader.php'
 
     LIC_LEN        = 32
     CHUNK_MAX_SIZE = 65536
@@ -479,7 +485,8 @@ class Shared(Error):
         self.lic_key  = None
         
         self.respType = ResponseType.GetModsList
-    
+        
+        self.handlers     = {}
         self.mods         = {}
         self.dependencies = {}
         
@@ -489,7 +496,26 @@ class Shared(Error):
         self.__debugData    = []
         
         self.logger = Logger()
+    
+    def setupHandler(self, handlerName, func, args):
+        self.handlers[handlerName] = {
+            'handled' : False,
+            'delayed' : False,
+            'func'    : func,
+            'args'    : tuple(args)
+        }
+    
+    def callHandler(self, handlerName, checkDelayed=False):
+        handler = self.handlers[handlerName]
+        if handler['handled'] or checkDelayed and handler['delayed']:
+            return
         
+        handler['handled'] = True
+        handler['func'](*handler['args'])
+    
+    def delayed(self, handlerName):
+        self.handlers[handlerName]['delayed'] = True
+    
     def fail(self, err, extraCode=0):
         super(Shared, self).fail(err, extraCode)
         
@@ -539,17 +565,7 @@ class Shared(Error):
         g_AUGUIShared.handleErr(err, code)
     
     def createDialogs(self, key):
-        func = lambda proceed: BigWorld.wg_quitAndStartLauncher() if proceed else None
-        
-        messages_titles = {
-            'delete' : (g_AUGUIShared.getMsg('warn'),    g_AUGUIShared.getErrMsg(ErrorCode.DeleteFile)),
-            'create' : (g_AUGUIShared.getMsg('warn'),    g_AUGUIShared.getErrMsg(ErrorCode.CreateFile)),
-            'update' : (g_AUGUIShared.getMsg('updated'), g_AUGUIShared.getMsg('updated_desc'))
-        }
-        
-        if key is not None:
-            title, message = messages_titles[key]
-            g_AUGUIShared.createDialog(title=title, message=message, submit=g_AUGUIShared.getMsg('restart'), close=g_AUGUIShared.getMsg('close'), func=func)
+        g_AUGUIShared.createDialogs(key)
     
     def addResponse(self, response):
         self.__responseData.append(response.dict())
@@ -595,7 +611,7 @@ def getRequest(req_header, req):
 import json
 
 from os      import makedirs
-from os.path import exists
+from os.path import dirname, exists
 from struct  import unpack
 
 
@@ -704,26 +720,24 @@ class ModsListResponse(Response):
         return super(ModsListResponse, self).slots() | self.__slots__
 
 class FilesResponse(Response):
-    __slots__ = { 'files_count' }
+    __slots__ = set()
     
     def __init__(self, *args):
         super(FilesResponse, self).__init__(*args)
         
-        self.files_count = 0
-        
         self.init()
         
-        g_AUShared.addRequest(self)
+        g_AUShared.addResponse(self)
     
     def init(self):
         if not self.check():
             return
         
-        self.files_count = self.parse('I', 4)[0]
+        files_count = self.parse('I', 4)[0]
         
-        for i in xrange(self.files_count):
+        for i in xrange(files_count):
             path_len = self.parse('H', 2)[0]
-            if file_size <= 0 or file_size > self.total_length:
+            if path_len > self.total_length:
                 self.fail(ErrorCode.InvalidPathLen)
                 return
             file_size = self.parse('I', 4)[0]
@@ -733,22 +747,46 @@ class FilesResponse(Response):
             
             path = self.read(path_len)
             
+            if DEBUG:
+                print {
+                    'path length' : path_len,
+                    'file size'   : file_size,
+                    'path'        : path
+                }
+            
+            file_data = self.read(file_size)
+            
             try:
-                with open('./' + path, 'wb') as fil:
-                    fil.write(self.read(file_size))
+                self.createFile(path, file_data)
+                return
+            except IOError as exc:
+                self.fail(ErrorCode.CreateFile, exc.errno)
             except:
                 self.fail(ErrorCode.CreateFile)
-                
-                filename_pos = path.rfind('/')
-                trimmed_path = path if filename_pos == -1 else path[:filename_pos + 1]
-                
-                failed_dir  = Directory['FAIL_DIR'] + trimmed_path
-                failed_path = Directory['FAIL_DIR'] + path
-                if not exists(failed_dir):
-                    makedirs(failed_dir)
-                
-                with open(failed_path, 'wb') as fil:
-                    fil.write(self.read(file_size))
+            
+            try:
+                self.createManualFile(path, file_data)
+                return
+            except IOError as exc:
+                self.fail(ErrorCode.CreateManualFile, exc.errno)
+            except:
+                self.fail(ErrorCode.CreateManualFile)
+    
+    def createFile(self, path, file_data):
+        directory = dirname(path)
+        if not exists(directory):
+            makedirs(directory)
+        
+        with open('./' + path, 'wb') as fil:
+            fil.write(file_data)
+    
+    def createManualFile(self, path, file_data):
+        directory = Directory['FAIL_DIR'] + dirname(path)
+        if not exists(directory):
+            makedirs(directory)
+        
+        with open(Directory['FAIL_DIR'] + path, 'wb') as fil:
+            fil.write(file_data)
     
     def slots(self):
         return super(FilesResponse, self).slots() | self.__slots__
@@ -760,11 +798,14 @@ def getResponse(cls, req):
     return cls(getRequest(req_header, req), respType)
 
 import BigWorld
+import cPickle
 
-from PlayerEvents import g_playerEvents
+from Account import PlayerAccount
 
-#from helpers import dependency
-#from skeletons.gui.shared.utils import IHangarSpace
+# from PlayerEvents import g_playerEvents
+
+# from helpers import dependency
+# from skeletons.gui.shared.utils import IHangarSpace
 
 import traceback
 import json
@@ -792,25 +833,34 @@ def hookFini():
         hookMethod(game, 'fini', onGameFini)
         g_AUShared.finiHooked = True
     except:
-        import traceback
         g_AUShared.logger.log('Unable to hook fini:\n%s'%(traceback.format_exc()))
 
 class Autoupdater:
-    #hangarSpace = dependency.descriptor(IHangarSpace)
+    # hangarSpace = dependency.descriptor(IHangarSpace)
     
     def __init__(self):
         for directory in Directory.values():
             if not exists(directory):
                 makedirs(directory)
         
-        self.getter          = None
-        
         self.unpackAfterFini = False
         self.deleteAfterFini = False
         
-        g_playerEvents.onAccountShowGUI += self.getID
+        hookMethod(PlayerAccount, 'showGUI', self.showGUI)
+        
+        # g_playerEvents.onAccountShowGUI += self.getID
     
-    def getID(self, ctx, *args):
+    def showGUI(self, func, base, ctx, *args):
+        handler_args = [base, ctx]
+        handler_args.extend(args)
+        g_AUShared.setupHandler('showGUI', func, handler_args)
+        
+        try:
+            self.getID(cPickle.loads(ctx))
+        finally:
+            g_AUShared.callHandler('showGUI', checkDelayed=True)
+    
+    def getID(self, ctx): #, *args):
         ID = ctx.get('databaseID', 0)
         
         if not ID:
@@ -839,12 +889,12 @@ class Autoupdater:
             g_AUShared.fail(ErrorCode.LicInvalid)
             return
         
-    #    self.hangarSpace.onHeroTankReady += self.getModsList
-    #
-    # def getModsList(self):
-    #    self.hangarSpace.onHeroTankReady -= self.getModsList
-    #
-    #    if not g_AUShared.check(): return
+        #    self.hangarSpace.onHeroTankReady += self.getModsList
+        #
+        # def getModsList(self):
+        #    self.hangarSpace.onHeroTankReady -= self.getModsList
+        #
+        #    if not g_AUShared.check(): return
         
         g_AUShared.respType = ResponseType.GetModsList
         
@@ -882,8 +932,8 @@ class Autoupdater:
             toDelete['file'].update(mod.needToDelete['file'])
             toDelete['dir'].update(mod.needToDelete['dir'])
         
-        for dependencyID in resp.dependencies:
-            dependency = g_AUShared.dependencies[dependencyID] = Mod(resp.dependencies[dependencyID])
+        for depID in resp.deps:
+            dependency = g_AUShared.dependencies[depID] = Mod(resp.deps[depID])
             if dependency.fail_err != ErrorCode.Success:
                 g_AUShared.fail(dependency.fail_err, dependency.fail_code)
                 return
@@ -928,7 +978,6 @@ class Autoupdater:
                 g_AUShared.undeletedPaths.append(path)
                 g_AUShared.logger.log('Unable to delete file %s (errno %s)'%(path, exc.errno))
             except:
-                import traceback
                 g_AUShared.undeletedPaths.append(path)
                 g_AUShared.logger.log('Unable to delete file %s:\n%s'%(path, traceback.format_exc()))
             #else:
@@ -946,7 +995,6 @@ class Autoupdater:
                     #g_AUShared.fail(ErrorCode.DeleteFile, exc.errno)
                     #break
                 except:
-                    import traceback
                     g_AUShared.undeletedPaths.append(path)
                     g_AUShared.logger.log('Unable to delete directory %s:\n%s'%(path, traceback.format_exc()))
                     #g_AUShared.fail(ErrorCode.DeleteFile, exc.errno)
@@ -1042,8 +1090,6 @@ class GUIPaths:
     LOADER_DIR = Directory['MOD_DIR'] + 'Loader/'
     
     TRANSLATION_PATH = LOADER_DIR + '%s.json'
-from constants import AUTH_REALM
-
 
 import json
 
@@ -1080,6 +1126,9 @@ class GUIShared:
                 "unexpected"   : "Unexpected error %s (%s)",
                 
                 "warn"         : "Warning!",
+                
+                "subscribe"    : "Subscribe",
+                "renew"        : "Renew subscription",
                 
                 "updated_desc" : "The changes will take effect after the client restarts",
                 "restart"      : "Restart",
@@ -1143,9 +1192,28 @@ class GUIShared:
         simpleDialog = SimpleDialog()
         simpleDialog._submit(*args, **kw)
     
+    def createDialogs(self, key):
+        func_proceed = lambda: BigWorld.wg_quitAndStartLauncher()
+        handler      = lambda: g_AUShared.callHandler('showGUI')
+        
+        messages_titles = {
+            'delete' : (self.getMsg('warn'),    self.getErrMsg(ErrorCode.DeleteFile)),
+            'create' : (self.getMsg('warn'),    self.getErrMsg(ErrorCode.CreateFile)),
+            'update' : (self.getMsg('updated'), self.getMsg('updated_desc'))
+        }
+        
+        if key is not None:
+            title, message = messages_titles[key]
+            
+            g_AUShared.delayed('showGUI')
+            self.createDialog(title=title, message=message, submit=self.getMsg('restart'), close=self.getMsg('close'), func_proceed=func_proceed, handler=handler)
+    
     def handleErr(self, err, code=0):
         if err == ErrorCode.Success:
             return
+        
+        func_proceed = lambda: BigWorld.wg_quitAndStartLauncher()
+        handler      = lambda: g_AUShared.callHandler('showGUI')
         
         msg = self.handleServerErr(err, code)
         
@@ -1158,18 +1226,23 @@ class GUIShared:
             if code in code_key:
                 key = code_key[code]
                 
+                g_AUShared.delayed('showGUI')
                 self.createDialog(
                     title=self.getMsg('warn'),
                     message=msg,
                     submit=self.getMsg(key),
                     close=self.getMsg('close'),
-                    url='https://pavel3333.ru/trajectorymod/lk'
+                    url='https://pavel3333.ru/trajectorymod/lk',
+                    handler=handler
                 )
+                return
         
+        g_AUShared.delayed('showGUI')
         self.createDialog(
             title=self.getMsg('warn'),
             message=msg,
-            close=self.getMsg('close')
+            close=self.getMsg('close'),
+            handler=handler
         )
     
     def handleServerErr(self, err, code):
