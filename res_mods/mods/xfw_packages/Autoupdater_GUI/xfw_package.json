@@ -3,7 +3,7 @@
     "name": "Autoupdater GUI module",
     "description": "Shows Autoupdater GUI in the hangar",
 
-    "version": "0.9.22.0",
+    "version": "0.9.22.0.1",
     "dependencies": [
         "com.pavel3333.Autoupdater",
         "com.modxvm.xfw.native"
