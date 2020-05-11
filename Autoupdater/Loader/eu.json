@@ -1,0 +1,46 @@
+{
+    "info": [
+        "Pavel3333 Mods Autoupdater", 
+        "Author: Pavel3333 from RAINN VOD team", 
+        "Authors YouTube channel \"RAINN VOD\"", 
+        "Authors VK Group \"RAINN VOD\""
+    ], 
+    "msg": {
+        "close": "Close", 
+        "deleted": "Autoupdater was deleted", 
+        "renew": "Renew subscription", 
+        "restart": "Restart", 
+        "subscribe": "Subscribe", 
+        "unexpected": "Unexpected error %s (%s)", 
+        "updated": "Autoupdater was updated", 
+        "updated_desc": "The changes will take effect after the client restarts", 
+        "warn": "Warning!"
+    }, 
+    "msg_err": {
+        "CheckID": "An error occured while checking player ID", 
+        "Connect": "Unable to connect to the server", 
+        "CreateFile": "Unable to update some files.\nThey will be updated after game restart", 
+        "CreateManualFile": "Unable to update some files and copy it to manual directory.\nPlease contact us", 
+        "DecodeModFields": "Got incorrect mod data", 
+        "DeleteFile": "Unable to delete some files.\nThey will be deleted after game restart", 
+        "GetDeps": "An error occured while getting dependencies list. Error code %s", 
+        "GetFiles": "An error occured while getting files. Error code %s", 
+        "GetModFields": "Could not get mod data", 
+        "GetMods": "An error occured while getting mod list. Error code %s", 
+        "InvalidFileSize": "Got invalid file size", 
+        "InvalidPathLen": "Got invalid path length", 
+        "LicInvalid": "License key is invalid", 
+        "LicNotFound": "License key was not found.\nPlease redownload the autoupdater", 
+        "ReadDeps": "An error occured while reading dependencies list", 
+        "ReadMods": "An error occured while reading mod list", 
+        "RespInvalid": "An error occured: got invalid response", 
+        "RespTooSmall": "An error occured: got empty response", 
+        "Translations": "An error occured while loading autoupdater translations.\nPlease redownload the autoupdater"
+    }, 
+    "msg_warn": {
+        "CheckID": "ID was not found", 
+        "Expired": "Autoupdater subscription has expired.<br >You can renew the subscription on \"https://pavel3333.ru/trajectorymod/lk\"", 
+        "GetModDesc": "Mod was not found", 
+        "GetUserData": "You are not subscribed to Autoupdater.<br>You can subscribe it on \"https://pavel3333.ru/trajectorymod/lk\""
+    }
+}
