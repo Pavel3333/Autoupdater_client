@@ -3,7 +3,7 @@
     "name": "Autoupdater",
     "description": "Autoupdater main module",
 
-    "version": "0.9.22.0",
+    "version": "0.9.22.0.1",
     
     "dependencies": [
         "com.modxvm.xfw.native"
