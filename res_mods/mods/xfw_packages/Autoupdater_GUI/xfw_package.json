@@ -12,7 +12,7 @@
     "url": "https://pavel3333.ru/autoupdater/",
     "url_update": "https://pavel3333.ru/autoupdater/",
     
-    "wot_version_min": "1.9.0.2",
+    "wot_version_min": "1.9.0.3",
     "wot_version_exactmatch": false,
     
     "features": ["python", "native"],
